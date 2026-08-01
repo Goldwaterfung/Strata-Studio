@@ -38,21 +38,21 @@
 <table width="100%">
   <tr>
     <td width="50%" valign="top">
-      <h3>⚡ Agentic Co-Creation</h3>
+      <h3>Agentic Co-Creation</h3>
       <p>Pair human creative intuition with agentic precision—allowing intelligent agents to handle tedious edits, track routing, automation curves, and spectral feedback.</p>
     </td>
     <td width="50%" valign="top">
-      <h3>🔌 Universal Plugin Support</h3>
+      <h3>Universal Plugin Support</h3>
       <p>Run your favorite virtual instruments and audio effects with full support for <b>VST3</b>, <b>Audio Units (AU)</b>, and <b>CLAP</b> plugin formats.</p>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <h3>🎛️ Complete Production Suite</h3>
+      <h3>Complete Production Suite</h3>
       <p>Full multitrack recording, intuitive Piano Roll MIDI editing, dynamic tempo maps, non-destructive comping, and high-quality stem exports.</p>
     </td>
     <td width="50%" valign="top">
-      <h3>🚀 Real-Time Performance</h3>
+      <h3>Real-Time Performance</h3>
       <p>Engineered for rock-solid stability and low-latency audio processing, ensuring your studio sessions run smoothly without dropouts or buffer lags.</p>
     </td>
   </tr>
