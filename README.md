@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎛️ Strata Studio
+# ![Strata](asset/strata.png) Strata Studio
 
 ### Agentic & Modular Digital Audio Workstation
 
