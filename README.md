@@ -15,12 +15,12 @@
 ---
 
 <p align="center">
-  <a href="#-key-features">Key Features</a> •
-  <a href="#-project-overview--architecture">Architecture</a> •
-  <a href="#-building--installation">Building & Installation</a> •
-  <a href="#-agentic-cli-command-reference-daw-cli">CLI Reference</a> •
-  <a href="#-development--roadmap">Roadmap</a> •
-  <a href="#-license">License</a>
+  <a href="#key-features">Key Features</a> •
+  <a href="#project-overview--architecture">Architecture</a> •
+  <a href="#building--installation">Building & Installation</a> •
+  <a href="#agentic-cli-command-reference-daw-cli">CLI Reference</a> •
+  <a href="#development--roadmap">Roadmap</a> •
+  <a href="#license">License</a>
 </p>
 
 </div>
