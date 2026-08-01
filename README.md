@@ -17,11 +17,11 @@
 
 Strata Studio is engineered around a strict 8-layer architecture to guarantee real-time safety, modular maintainability, and deterministic high-performance audio execution:
 
-- **Real-Time Safe Audio Engine**: Zero dynamic allocations (`malloc`/`new`) on the audio thread, planar float32 channel buffers, FTZ/DAZ denormal handling, lock-free SPSC ring buffers, and SIMD (AVX2) processing.
-- **Deterministic DSP Graph Topology**: Directed Acyclic Graph (DAG) with O(1) flattened execution arrays, explicit 1-to-1 planar port routing, pre-computed connection adjacency lists, and graph-wide Plugin Delay Compensation (PDC).
-- **Decoupled 8-Layer Hierarchy**: Downward-only dependencies ($N \to N-1$) with Plain Old Data (POD) boundary constraints. UI views (Layer 7) and AI Agent daemons (Layer 8) interact exclusively through Middle Bridge facade controllers.
-- **Agentic IPC & Automation Daemon (`daw-cli`)**: Asynchronous IPC daemon server exposing session controls, clip editing, parameter mutations, and non-visual audio spectrum intelligence to LLM agents.
-- **Multi-Format Host Infrastructure**: High-capacity plugin scanner and host supporting VST3, AU, and CLAP with sample-accurate automation event routing.
+- **Real-Time Safe Audio Engine**
+- **Deterministic DSP Graph Topology**
+- **Decoupled 8-Layer Hierarchy**
+- **Agentic IPC & Automation Daemon (`daw-cli`)**
+- **Multi-Format Host Infrastructure**
 
 ### 8-Layer Architecture Hierarchy
 
