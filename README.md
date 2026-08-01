@@ -38,7 +38,7 @@
 <table width="100%">
   <tr>
     <td width="50%" valign="top">
-      <h3>⚡ Human-AI Co-Creation</h3>
+      <h3>⚡ Agentic Co-Creation</h3>
       <p>Pair human creative intuition with agentic precision—allowing intelligent agents to handle tedious edits, track routing, automation curves, and spectral feedback.</p>
     </td>
     <td width="50%" valign="top">
@@ -365,15 +365,9 @@ Strata Studio features an Agentic IPC daemon and command-line utility (`daw-cli`
 - [x] **Tracks & Gain-Staging** (`track`, `prep`) - Fully Implemented
 - [x] **VST3 / AU Plugin Host Management** (`plugin`) - Fully Implemented
 - [ ] **Clips & Timeline Editing** (`clip`, `midi`) - *In Progress*
-  - [ ] `clip add-audio`, `clip split`, `clip trim-silence`, `clip quantize`, `clip merge`, `clip move`, `clip nudge`, `clip set-gain`, `clip list`
-  - [ ] `midi add-note`
 - [ ] **Bus Submixing & Auxiliary FX Routing** (`route`) - *In Progress*
-  - [ ] `route folder`, `route send`, `route sidechain`, `route list`
 - [ ] **Non-Visual DSP Analysis & Audio Intelligence** (`analyze`) - *In Progress*
-  - [ ] `analyze spectrum`, `analyze resonance`, `analyze masking`, `analyze loudness`, `analyze true-peak`, `analyze phase-matrix`, `analyze phase-align`, `analyze stereo-width`
 - [ ] **Stem Exports & Asynchronous Render Jobs** (`export`, `job`) - *In Progress*
-  - [ ] `export stems`
-  - [ ] `job status`, `job cancel`, `job list`
 
 ---
 
