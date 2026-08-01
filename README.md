@@ -175,8 +175,8 @@ This will handle:
 
 1. **Clone the repository** (if not already done):
    ```bash
-   git clone <repository-url>
-   cd agent-based-daw
+   git clone https://github.com/Goldwaterfung/Strata-Studio.git
+   cd Strata-Studio
    ```
 
 2. **Configure the build**:
