@@ -1,0 +1,13 @@
+#ifndef PROJECT_CONFIG_H
+#define PROJECT_CONFIG_H
+
+#include <string_view>
+
+namespace config {
+    inline constexpr std::string_view PROJECT_NAME = "@PROJECT_NAME@";
+    inline constexpr std::string_view PROJECT_DISPLAY_NAME = "@PROJECT_DISPLAY_NAME@";
+    inline constexpr std::string_view PROJECT_VERSION = "@PROJECT_VERSION@";
+    inline constexpr std::string_view PROJECT_EXECUTABLE_NAME = "@PROJECT_EXECUTABLE_NAME@";
+}
+
+#endif // PROJECT_CONFIG_H

@@ -1,0 +1,15 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/icons">
+    <file alias="collection.svg">../assets/logos/collection.svg</file>
+    <file alias="loop.svg">../assets/logos/loop.svg</file>
+    <file alias="metronome.svg">../assets/logos/metronome.svg</file>
+    <file alias="mixer.svg">../assets/logos/mixer.svg</file>
+    <file alias="piano.svg">../assets/logos/piano.svg</file>
+    <file alias="settings.svg">../assets/logos/settings.svg</file>
+    <file alias="playlist-menu.svg">../assets/logos/playlist-menu.svg</file>
+    <file alias="diagnose.svg">../assets/logos/diagnose.svg</file>
+    <file alias="collapse.svg">../assets/logos/collapse.svg</file>
+    <file alias="expand.svg">../assets/logos/expand.svg</file>
+    <file alias="refresh.svg">../assets/logos/refresh.svg</file>
+</qresource>
+</RCC>

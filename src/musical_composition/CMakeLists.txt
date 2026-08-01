@@ -1,0 +1,16 @@
+# Layer 5: Musical & Project Composition
+cmake_minimum_required(VERSION 3.20)
+
+add_subdirectory(track_manager)
+add_subdirectory(interfaces)
+add_subdirectory(playlist)
+add_subdirectory(midi_sequencer)
+add_subdirectory(automation)
+add_subdirectory(arranger)
+add_subdirectory(chord_track)
+add_subdirectory(comping)
+add_subdirectory(region_manager)
+add_subdirectory(clipboard)
+add_subdirectory(command_history)
+add_subdirectory(project_session)
+add_subdirectory(recording)

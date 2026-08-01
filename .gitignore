@@ -1,0 +1,90 @@
+# Build directories
+build/
+*.build/
+out/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Documents
+docs/
+.agents/
+agents/
+.claude/
+ARCHITECTURE.md
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.user
+*.suo
+*.vcxproj
+*.vcxproj.filters
+*.sln
+
+# Executables and libraries
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.o
+*.obj
+bin/
+
+# Test output
+Testing/
+tests/unit/unit_tests
+tests/performance/performance_tests
+
+# Log files
+*.log
+
+# Package managers & Third-party SDKs
+vcpkg/
+vcpkg_installed/
+.conan/
+src/third_party/
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Profiling
+*.prof
+*.profraw
+*.profdata
+
+# Coverage
+coverage/
+*.gcda
+*.gcno
+*.gcov
+html/
+
+# Sanitizer logs
+asan.log
+tsan.log
+ubsan.log
+
+# Developer Tooling & Language Server
+compile_commands.json
+.clangd/
+.cache/
+CMakeUserPresets.json
+
+# Project-specific
+*.dawproject
+*.autosave
+cache/
