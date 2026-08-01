@@ -259,9 +259,17 @@ if(APPLE)
     set(CPACK_GENERATOR "productbuild")
     set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications")
     set(CPACK_PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "Code signing identity for productbuild")
+    
+    # Configure post-install script to automatically symlink daw-cli
+    set(CPACK_POSTFLIGHT_APPLICATION_SCRIPT "${CMAKE_SOURCE_DIR}/scripts/packaging/postinstall.sh")
+
 elseif(WIN32)
     set(CPACK_GENERATOR "NSIS;INNOSETUP")
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "Strata Studio")
+    
+    # Automatically add the installation directory to the Windows PATH 
+    # so daw-cli.exe is instantly available in Command Prompt / PowerShell
+    set(CPACK_NSIS_MODIFY_PATH ON)
 endif()
 
 include(CPack)

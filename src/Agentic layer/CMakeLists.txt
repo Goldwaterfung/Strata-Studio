@@ -34,3 +34,16 @@ add_executable(daw-cli
 )
 
 target_compile_features(daw-cli PUBLIC cxx_std_20)
+
+# Install daw-cli
+if(APPLE)
+    install(TARGETS daw-cli
+        RUNTIME DESTINATION "strata_studio.app/Contents/MacOS"
+        COMPONENT Application
+    )
+else()
+    install(TARGETS daw-cli
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        COMPONENT Application
+    )
+endif()

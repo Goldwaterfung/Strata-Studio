@@ -27,13 +27,13 @@
 
 ---
 
-## 💡 Overview
+## Overview
 
 **Strata Studio** is a collaborative human-agent Digital Audio Workstation (DAW) designed to elevate music production. It pairs creative artists with intelligent AI agents, allowing producers, sound designers, and engineers to co-create, mix, edit, and automate music through seamless human-AI partnership alongside classic DAW tools.
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 <table width="100%">
   <tr>
@@ -60,15 +60,15 @@
 
 ---
 
-## 🏗️ Project Overview & Architecture
+## Project Overview & Architecture
 
 Strata Studio is engineered around a strict **8-layer architecture** to guarantee real-time safety, modular maintainability, and deterministic high-performance audio execution:
 
-- ⚡ **Real-Time Safe Audio Engine**
-- 🔀 **Deterministic DSP Graph Topology**
-- 🧱 **Decoupled 8-Layer Hierarchy**
-- 🤖 **Agentic IPC & Automation Daemon (`daw-cli`)**
-- 🔌 **Multi-Format Host Infrastructure**
+- **Real-Time Safe Audio Engine**
+- **Deterministic DSP Graph Topology**
+- **Decoupled 8-Layer Hierarchy**
+- **Agentic IPC & Automation Daemon (`daw-cli`)**
+- **Multi-Format Host Infrastructure**
 
 ### 8-Layer Architecture Hierarchy
 
@@ -141,7 +141,7 @@ Strata Studio is engineered around a strict **8-layer architecture** to guarante
 
 ---
 
-## 🛠️ Building & Installation
+## Building & Installation
 
 ### Prerequisites
 
@@ -300,7 +300,7 @@ ctest --output-on-failure
 
 ---
 
-## 🤖 Agentic CLI Command Reference (`daw-cli`)
+## Agentic CLI Command Reference (`daw-cli`)
 
 Strata Studio features an Agentic IPC daemon and command-line utility (`daw-cli`) designed for AI agents and automated control.
 
@@ -357,7 +357,7 @@ Strata Studio features an Agentic IPC daemon and command-line utility (`daw-cli`
 
 ---
 
-## 🗺️ Development & Roadmap
+## Development & Roadmap
 
 ### Agentic Layer (`daw-cli`) Feature Status
 
@@ -371,7 +371,7 @@ Strata Studio features an Agentic IPC daemon and command-line utility (`daw-cli`
 
 ---
 
-## 📜 License
+## License
 
 <div align="center">
 
@@ -390,7 +390,7 @@ This work is licensed under a
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 <div align="center">
 
