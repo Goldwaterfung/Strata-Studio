@@ -1,6 +1,6 @@
 <div align="center">
 
-# <img src="asset/strata.png" alt="Strata" width="512" style="vertical-align: middle;" /> Strata Studio
+# ![Strata](asset/strata.png) Strata Studio
 
 ### Agentic & Modular Digital Audio Workstation
 
