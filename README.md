@@ -2,7 +2,7 @@
 
 # ![Strata](asset/strata.png) Strata Studio
 
-### Agentic & Modular Digital Audio Workstation
+### Agentic Digital Audio Workstation
 
 <p align="center">
   <b>A next-generation human-agent collaborative DAW designed for intelligent music production, sound design, and audio engineering.</b>
