@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Strata Studio DAW CLI Command Schema",
+  "description": "Machine-readable definition of all verbs, subcommands, flags, option types, and output symbols in daw-cli.",
+  "socketPath": "/tmp/daw_session.sock",
+  "outputFormats": ["tsv", "kv", "json", "pretty"],
+  "verbs": {
+    "status": {
+      "description": "Queries current transport state, tempo, time signature, and playhead position.",
+      "subcommands": {},
+      "options": {
+        "--format": { "type": "string", "enum": ["tsv", "kv", "json", "pretty"], "default": "kv" }
+      },
+      "successSymbol": "STATUS_OK"
+    },
+    "transport": {
+      "description": "Controls audio playback and timeline settings.",
+      "subcommands": {
+        "play": {
+          "description": "Starts transport audio playback.",
+          "options": {},
+          "successSymbol": "PLAYBACK_STARTED"
+        },
+        "stop": {
+          "description": "Stops transport audio playback.",
+          "options": {},
+          "successSymbol": "PLAYBACK_STOPPED"
+        },
+        "set-tempo": {
+          "description": "Sets session tempo in BPM.",
+          "options": {
+            "--bpm": { "type": "number", "required": true, "alias": ["--tempo"], "description": "Tempo value in BPM (e.g., 120.0)" }
+          },
+          "successSymbol": "TEMPO_UPDATED"
+        },
+        "set-time-signature": {
+          "description": "Sets time signature numerator and denominator.",
+          "options": {
+            "--num": { "type": "integer", "default": 4, "description": "Time signature numerator (1..32)" },
+            "--den": { "type": "integer", "default": 4, "description": "Time signature denominator (2, 4, 8, 16, 32)" }
+          },
+          "successSymbol": "TIME_SIGNATURE_UPDATED"
+        }
+      }
+    },
+    "track": {
+      "description": "Manages track layout, channels, gain, pan, mute, solo, and coloring.",
+      "subcommands": {
+        "create": {
+          "description": "Creates a new track.",
+          "options": {
+            "--name": { "type": "string", "default": "Untitled Track" },
+            "--type": { "type": "string", "enum": ["audio", "midi", "instrument", "aux", "folder"], "default": "audio" },
+            "--color": { "type": "string", "default": "blue", "description": "Color name or #HEX string" }
+          },
+          "successSymbol": "TRACK_CREATED"
+        },
+        "create-batch": {
+          "description": "Creates multiple tracks in batch.",
+          "options": {
+            "--names": { "type": "string", "required": true, "description": "Comma-separated list of track names" },
+            "--type": { "type": "string", "enum": ["audio", "midi", "instrument", "aux", "folder"], "default": "audio" }
+          },
+          "successSymbol": "BATCH_TRACKS_CREATED"
+        },
+        "list": {
+          "description": "Lists all tracks in the session.",
+          "options": {
+            "--format": { "type": "string", "enum": ["tsv", "kv", "json", "pretty"], "default": "tsv" }
+          },
+          "successSymbol": "TRACK_LIST"
+        },
+        "inspect": {
+          "description": "Inspects detailed parameters for a track.",
+          "options": {
+            "--track": { "type": "integer", "default": 1, "description": "Track ID" }
+          },
+          "successSymbol": "TRACK_INSPECT"
+        },
+        "set-gain": {
+          "description": "Sets volume gain in dB.",
+          "options": {
+            "--track": { "type": "string", "default": "1", "description": "Track ID or range (e.g. 1..4)" },
+            "--db": { "type": "number", "required": true, "description": "Fader gain level in dB" }
+          },
+          "successSymbol": "TRACK_GAIN_UPDATED"
+        },
+        "set-pan": {
+          "description": "Sets track pan position.",
+          "options": {
+            "--track": { "type": "string", "default": "1", "description": "Track ID or range" },
+            "--value": { "type": "number", "required": true, "description": "Pan position (-1.0 Left to +1.0 Right)" }
+          },
+          "successSymbol": "TRACK_PAN_UPDATED"
+        },
+        "set-mute": {
+          "description": "Mutes or unmutes tracks.",
+          "options": {
+            "--track": { "type": "string", "default": "1" },
+            "--on": { "type": "boolean", "default": false, "description": "Pass flag to mute, omit to unmute" }
+          },
+          "successSymbol": "TRACK_MUTE_UPDATED"
+        },
+        "set-solo": {
+          "description": "Solos or unsolos tracks.",
+          "options": {
+            "--track": { "type": "string", "default": "1" },
+            "--on": { "type": "boolean", "default": false, "description": "Pass flag to solo, omit to unsolo" }
+          },
+          "successSymbol": "TRACK_SOLO_UPDATED"
+        },
+        "delete": {
+          "description": "Deletes track(s) from session.",
+          "options": {
+            "--track": { "type": "string", "required": true, "description": "Track ID or range to delete" }
+          },
+          "successSymbol": "TRACK_DELETED"
+        },
+        "set-color": {
+          "description": "Sets track color.",
+          "options": {
+            "--track": { "type": "string", "default": "1" },
+            "--color": { "type": "string", "required": true, "description": "Semantic color name or #HEX" }
+          },
+          "successSymbol": "TRACK_COLOR_UPDATED"
+        },
+        "auto-color": {
+          "description": "Automatically colors tracks based on instrument family keywords.",
+          "options": {},
+          "successSymbol": "TRACKS_AUTO_COLORED"
+        },
+        "sanitize-names": {
+          "description": "Cleans track names by removing file extension artifacts and underscores.",
+          "options": {},
+          "successSymbol": "TRACK_NAMES_SANITIZED"
+        }
+      }
+    },
+    "prep": {
+      "description": "Session preparation utilities.",
+      "subcommands": {
+        "gain-stage": {
+          "description": "Normalizes track gain to target RMS headroom in dB.",
+          "options": {
+            "--track": { "type": "string", "default": "1..8" },
+            "--target-rms": { "type": "number", "default": -18.0 }
+          },
+          "successSymbol": "GAIN_STAGE_COMPLETED"
+        }
+      }
+    },
+    "plugin": {
+      "description": "Hosts and manipulates VST3/AU/CLAP plugins.",
+      "subcommands": {
+        "scan": {
+          "description": "Scans host system for installed audio plugins.",
+          "options": {},
+          "successSymbol": "PLUGIN_SCAN_COMPLETED"
+        },
+        "list": {
+          "description": "Lists discovered plugins.",
+          "options": {
+            "--filter": { "type": "string", "description": "Substring filter on name or vendor" },
+            "--category": { "type": "string", "enum": ["effect", "fx", "instrument", "synth"] },
+            "--head": { "type": "integer", "description": "Limit output to first N results" },
+            "--tail": { "type": "integer", "description": "Limit output to last N results" },
+            "--format": { "type": "string", "enum": ["tsv", "kv", "json", "pretty"], "default": "tsv" }
+          },
+          "successSymbol": "PLUGIN_LIST"
+        },
+        "add": {
+          "description": "Inserts a plugin into a track slot.",
+          "options": {
+            "--track": { "type": "string", "default": "1" },
+            "--name": { "type": "string", "description": "Exact case-sensitive plugin name" },
+            "--id": { "type": "integer", "description": "Numeric plugin ID" },
+            "--slot": { "type": "integer", "default": 0, "description": "Insert slot index (0..7)" }
+          },
+          "successSymbol": "PLUGIN_ADDED"
+        },
+        "set-param": {
+          "description": "Sets a normalized parameter value on an inserted plugin.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--plugin": { "type": "integer", "default": 0, "alias": ["--slot"], "description": "Slot index (0..7)" },
+            "--param": { "type": "integer", "required": true, "description": "Parameter index" },
+            "--val": { "type": "number", "required": true, "description": "Normalized float value (0.0..1.0)" }
+          },
+          "successSymbol": "PLUGIN_PARAM_UPDATED"
+        },
+        "copy": {
+          "description": "Copies a single plugin slot from one track to other tracks.",
+          "options": {
+            "--from-track": { "type": "integer", "default": 1 },
+            "--slot": { "type": "integer", "default": 0 },
+            "--to-tracks": { "type": "string", "required": true, "description": "Target track range" },
+            "--overwrite": { "type": "boolean", "default": false, "description": "Overwrite target slots if occupied" }
+          },
+          "successSymbol": "PLUGIN_COPIED"
+        },
+        "copy-chain": {
+          "description": "Copies all 8 insert plugin slots from source track to destination tracks.",
+          "options": {
+            "--from-track": { "type": "integer", "default": 1 },
+            "--to-tracks": { "type": "string", "required": true },
+            "--overwrite": { "type": "boolean", "default": false }
+          },
+          "successSymbol": "PLUGIN_CHAIN_COPIED"
+        }
+      }
+    }
+  }
+}

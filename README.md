@@ -38,8 +38,8 @@
 <table width="100%">
   <tr>
     <td width="50%" valign="top">
-      <h3>Agentic Co-Creation</h3>
-      <p>Pair human creative intuition with agentic precision—allowing intelligent agents to handle tedious edits, track routing, automation curves, and spectral feedback.</p>
+      <h3>Precision Studio Assistant</h3>
+      <p>Stay in complete creative control while your agentic assistant offloads the grunt work—handling repetitive clip edits, multi-bus routing, automation curves, and spectral feedback.</p>
     </td>
     <td width="50%" valign="top">
       <h3>Universal Plugin Support</h3>
@@ -52,8 +52,8 @@
       <p>Full multitrack recording, intuitive Piano Roll MIDI editing, dynamic tempo maps, non-destructive comping, and high-quality stem exports.</p>
     </td>
     <td width="50%" valign="top">
-      <h3>Real-Time Performance</h3>
-      <p>Engineered for rock-solid stability and low-latency audio processing, ensuring your studio sessions run smoothly without dropouts or buffer lags.</p>
+      <h3>Frictionless Workflow</h3>
+      <p>Spend less time configuring and more time creating. Automated session prep, instant gain-staging, and smart track management keep your creative momentum uninterrupted.</p>
     </td>
   </tr>
 </table>
