@@ -26,39 +26,6 @@ Binary location (if not installed on system PATH):
 
 ---
 
-## Agent Integration & Skill Setup
-
-`daw-cli` can be loaded and controlled by AI coding assistants and autonomous agents (such as **Codex**, **Claude Code**, **Claude Co-Work**, **Hermes**, **Antigravity**, **Gemini CLI**, **OpenCode**, etc.).
-
-### Installation & Discovery Paths
-
-To enable an agent to discover and use this skill, place or symlink the `skills/daw-cli/` directory into the expected skill path for your agent framework:
-
-| Agent Framework | Workspace Local Skill Path | Global User Skill Path |
-| :--- | :--- | :--- |
-| **Codex** | `.agents/skills/daw-cli` | `~/.agents/skills/daw-cli` |
-| **Claude Code / Co-Work** | `.claude/skills/daw-cli` | `~/.claude/skills/daw-cli` |
-| **Hermes** | `.hermes/skills/daw-cli` | `~/.hermes/skills/daw-cli` |
-| **Antigravity** | `.agents/skills/daw-cli` | `~/.gemini/config/skills/daw-cli` |
-| **Gemini CLI** | `.gemini/skills/daw-cli` | `~/.gemini/skills/daw-cli` |
-| **OpenCode** | `.opencode/skills/daw-cli` | `~/.config/opencode/skills/daw-cli` |
-
-### How Agents Control the DAW
-
-1. **Natural Language Translation**: When a user prompts the agent (e.g., *"Set tempo to 128 BPM and gain-stage drum tracks 1 to 4 to -18dB"*), the agent references this `SKILL.md` to map intent into precise `daw-cli` execution strings.
-2. **CLI Command Invocation**: Agents issue commands via standard terminal subshell or execution tool (using `daw-cli` or the quoted build path):
-   ```bash
-   # If daw-cli is on PATH:
-   daw-cli transport set-tempo --bpm 128.0
-   daw-cli prep gain-stage --track 1..4 --target-rms -18.0
-
-   # Or using explicit build binary path:
-   "./build/release/src/Agentic\ layer/daw-cli" transport set-tempo --bpm 128.0
-   ```
-3. **Structured Response Handling**: Agents should append `--format json` for programmatically structured JSON responses and verify exit code `0` before proceeding to subsequent operations.
-
----
-
 ## Prerequisites
 
 1. **DAW Application Must Be Running**: The GUI/Server application must be active before running `daw-cli`.

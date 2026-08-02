@@ -309,6 +309,23 @@ Strata Studio features an Agentic IPC daemon and command-line utility (`daw-cli`
 ./build/release/src/Agentic\ layer/daw-cli [command] [options]
 ```
 
+### AI Agent Integration & Skill Setup
+
+Strata Studio includes a pre-packaged skill instruction set in [`skills/daw-cli/`](skills/daw-cli/) so AI coding assistants and autonomous agents (such as **Codex**, **Claude Code**, **Claude Co-Work**, **Hermes**, **Antigravity**, **Gemini CLI**, **OpenCode**, etc.) can automatically discover, learn, and execute `daw-cli` commands.
+
+To enable your preferred AI agent to control Strata Studio DAW, copy or symlink the `skills/daw-cli/` folder to your agent framework's skill directory:
+
+| Agent Framework | Local Workspace Skill Path | Global User Skill Path |
+| :--- | :--- | :--- |
+| **Codex** | `.agents/skills/daw-cli` | `~/.agents/skills/daw-cli` |
+| **Claude Code / Co-Work** | `.claude/skills/daw-cli` | `~/.claude/skills/daw-cli` |
+| **Hermes** | `.hermes/skills/daw-cli` | `~/.hermes/skills/daw-cli` |
+| **Antigravity** | `.agents/skills/daw-cli` | `~/.gemini/config/skills/daw-cli` |
+| **Gemini CLI** | `.gemini/skills/daw-cli` | `~/.gemini/skills/daw-cli` |
+| **OpenCode** | `.opencode/skills/daw-cli` | `~/.config/opencode/skills/daw-cli` |
+
+Once installed, agents will use [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) as their operational manual to translate natural language prompts (e.g. *"Set session tempo to 128 BPM and gain stage all drum tracks to -18 dB RMS"*) into precise `daw-cli` subshell commands.
+
 <details open>
 <summary><b>1. Session State & Transport <code>[Implemented]</code></b></summary>
 <br>
