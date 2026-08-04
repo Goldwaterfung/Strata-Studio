@@ -177,7 +177,17 @@ if [ $RUN_PACKAGE -eq 1 ]; then
     echo ""
     echo -e "${GREEN}Packaging installer with CPack...${NC}"
     cpack -C "$BUILD_TYPE"
+    
+    if [ "$(uname)" = "Darwin" ]; then
+        echo -e "${YELLOW}Patching macOS package to prevent relocation...${NC}"
+        # Find the generated .pkg file
+        PKG_FILE=$(find . -maxdepth 1 -name "*.pkg" -print -quit)
+        if [ -n "$PKG_FILE" ]; then
+            "../../scripts/packaging/patch_pkg.sh" "$PKG_FILE"
+        fi
+    fi
 fi
+
 
 # Print summary
 echo ""
