@@ -68,7 +68,11 @@ int main(int argc, char* argv[]) {
     cmd.reserve(totalLen + 1);
     for (const char* arg : args) {
         if (arg != nullptr) {
-            cmd.append(arg).append(" ");
+            if (std::strchr(arg, ' ') != nullptr) {
+                cmd.append("\"").append(arg).append("\" ");
+            } else {
+                cmd.append(arg).append(" ");
+            }
         }
     }
     if (!cmd.empty()) { cmd.back() = '\n'; }

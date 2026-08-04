@@ -58,10 +58,27 @@ bool MidiEditorController::openClip(TrackID trackId, RegionID regionId) {
     auto* seq = trackManager->getMIDISequencer(trackId);
     if (!seq) return false;
 
+    RegionID resolvedRegionId = regionId;
+    if (auto* playlist = trackManager->getPlaylist(trackId)) {
+        std::vector<composition::IPlaylist::RegionInfo> scratch(128);
+        uint32_t count = playlist->getAllRegions(scratch.data(), static_cast<uint32_t>(scratch.size()));
+        for (uint32_t i = 0; i < count; ++i) {
+            if (regionId.id == 0) {
+                if (scratch[i].region.type == composition::RegionType::MIDI) {
+                    resolvedRegionId = scratch[i].id;
+                    break;
+                }
+            } else if (scratch[i].id.id == regionId.id) {
+                resolvedRegionId = scratch[i].id;
+                break;
+            }
+        }
+    }
+
     flushActiveNotes();
 
     activeTrackIdAtomic_.store(trackId, std::memory_order_release);
-    activeRegionIdAtomic_.store(regionId, std::memory_order_release);
+    activeRegionIdAtomic_.store(resolvedRegionId, std::memory_order_release);
     activeSequencerAtomic_.store(seq, std::memory_order_release);
     return true;
 }
@@ -362,7 +379,7 @@ void MidiEditorController::quantizeSelectedNotes(const NoteID* ids, uint32_t cou
                                                 int   swingPercentage) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto* activeSequencer_ = activeSequencerAtomic_.load(std::memory_order_acquire);
-    if (!activeSequencer_ || !ids || count == 0 || !tempoService_) return;
+    if (!activeSequencer_ || !tempoService_) return;
 
     composition::TimelineRegion region{};
     if (!getActiveRegion(region)) return;
@@ -374,6 +391,7 @@ void MidiEditorController::quantizeSelectedNotes(const NoteID* ids, uint32_t cou
         notes.resize(noteCount);
         noteCount = activeSequencer_->getNotesInClip(clipId, notes.data(), static_cast<uint32_t>(notes.size()));
     }
+    if (noteCount == 0) return;
 
     auto ticksPerBeat = tempoService_->getTicksPerBeat();
     if (ticksPerBeat == 0) return;
@@ -418,8 +436,11 @@ void MidiEditorController::quantizeSelectedNotes(const NoteID* ids, uint32_t cou
     auto* history = session ? session->getCommandHistory() : nullptr;
     if (history) history->beginCompound();
 
-    for (uint32_t i = 0; i < count; ++i) {
-        auto id = ids[i];
+    bool quantizeAll = (!ids || count == 0);
+    uint32_t loopLimit = quantizeAll ? noteCount : count;
+
+    for (uint32_t i = 0; i < loopLimit; ++i) {
+        auto id = quantizeAll ? notes[i].noteId : ids[i];
         for (uint32_t j = 0; j < noteCount; ++j) {
             if (notes[j].noteId == id) {
                 composition::MIDINote updated = notes[j];
@@ -869,7 +890,7 @@ composition::ITrackManager* MidiEditorController::getTrackManager() const {
 bool MidiEditorController::getActiveRegion(composition::TimelineRegion& outRegion) const {
     auto activeTrackId_ = activeTrackIdAtomic_.load(std::memory_order_acquire);
     auto activeRegionId_ = activeRegionIdAtomic_.load(std::memory_order_acquire);
-    if (!sessionManager_ || !activeRegionId_.isValid()) return false;
+    if (!sessionManager_ || activeRegionId_.id == 0 || activeRegionId_.id == UINT32_MAX) return false;
     auto* session = sessionManager_->getActiveSession();
     if (!session) return false;
     auto* trackManager = session->getTrackManager();
@@ -885,7 +906,8 @@ bool MidiEditorController::getActiveRegion(composition::TimelineRegion& outRegio
     }
 
     for (uint32_t i = 0; i < count; ++i) {
-        if (scratch[i].id == activeRegionId_) {
+        if (scratch[i].id.id == activeRegionId_.id &&
+            (activeRegionId_.generation == 0 || scratch[i].id.generation == activeRegionId_.generation)) {
             outRegion = scratch[i].region;
             return true;
         }

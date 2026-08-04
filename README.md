@@ -372,6 +372,26 @@ Once installed, agents will use [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL
 - `daw-cli plugin copy-chain --from-track 1 --to-tracks 2..5 --overwrite` — Copies entire 8-slot insert chain to target tracks.
 </details>
 
+<br>
+
+<details open>
+<summary><b>4. Clips & Timeline Editing <code>[Implemented]</code></b></summary>
+<br>
+
+- `daw-cli clip add-audio --track 1 --path "/audio/vocal.wav" --start 1.1.0` — Imports an audio clip onto a track timeline.
+- `daw-cli clip add-midi --track 1 --start 1.1.0 --dur 4.0.0` — Inserts a new MIDI clip region on a track.
+- `daw-cli midi add-note --track 1 --clip 1 --pitch 60 --velocity 100 --start 1.1.0 --dur 1.0.0` — Adds a MIDI note event to a clip.
+- `daw-cli clip list --track 1` — Lists all arrangement clips with start bar, duration, gain, and mute status.
+- `daw-cli clip set-gain --track 1 --clip 1 --db -3.0` — Sets clip region volume gain in dB.
+- `daw-cli clip set-mute --track 1 --clip 1 --on true` — Mutes or unmutes a specific clip.
+- `daw-cli clip split --track 1 --clip 1 --at 2.1.0` — Splits a clip into two regions at position.
+- `daw-cli clip trim-silence --track 1 --clip 1 --threshold -48.0 --fade-ms 5.0` — Trims lead/tail silence on clip.
+- `daw-cli clip quantize --track 1 --clip 1 --grid 1/16 --strength 1.0` — Quantizes notes/clip positions to grid.
+- `daw-cli clip merge --track 1 --start 1.1.0 --end 5.1.0` — Merges adjacent clips across a timeline range.
+- `daw-cli clip move --track 1 --clip 1 --to-pos 3.1.0` — Relocates a clip to a target bar/position.
+- `daw-cli clip nudge --track 1 --clip 1 --by +1/16` — Nudges clip position by grid fraction.
+</details>
+
 ---
 
 ## Development & Roadmap
@@ -381,7 +401,7 @@ Once installed, agents will use [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL
 - [x] **Session State & Transport** (`status`, `transport`) - Fully Implemented
 - [x] **Tracks & Gain-Staging** (`track`, `prep`) - Fully Implemented
 - [x] **VST3 / AU Plugin Host Management** (`plugin`) - Fully Implemented
-- [ ] **Clips & Timeline Editing** (`clip`, `midi`) - *In Progress*
+- [x] **Clips & Timeline Editing** (`clip`, `midi`) - Fully Implemented
 - [ ] **Bus Submixing & Auxiliary FX Routing** (`route`) - *In Progress*
 - [ ] **Non-Visual DSP Analysis & Audio Intelligence** (`analyze`) - *In Progress*
 - [ ] **Stem Exports & Asynchronous Render Jobs** (`export`, `job`) - *In Progress*

@@ -303,7 +303,10 @@ void Application::onBootCompleted() {
     if (m_commandDispatcher) {
         m_commandDispatcher->setControllers({
             compositionRoot.getTrackController(),
-            compositionRoot.getTimelineController()
+            compositionRoot.getTimelineController(),
+            compositionRoot.getBrowserController(),
+            compositionRoot.getArrangementController(),
+            compositionRoot.getMidiEditorController()
         });
     }
 

@@ -84,46 +84,54 @@ RegionID ArrangementController::importAudioClip(TrackID targetTrack, const char*
     composition::AudioSourceDescriptor desc{};
     desc.sourceId = SourceID::invalid();
     desc.nameId = nameId;
-    desc.totalLengthSamples = 441000; // Default 10 seconds at 44.1kHz
-    desc.channelCount = 2; // Stereo
-    desc.sampleRate = 44100;
     desc.mediaId = 0;
 
     // Extract actual file characteristics via Layer 6 codecs
     uint64_t realMediaId = 0;
     auto codecFactory = MediaManagement::ICodecFactory::create();
-    if (codecFactory) {
-        auto reader = codecFactory->createReader(filePath);
-        if (reader && reader->isValid()) {
-            desc.totalLengthSamples = reader->getTotalFrames();
-            desc.channelCount = reader->getNumChannels();
-            desc.sampleRate = reader->getSampleRate();
+    if (!codecFactory) return {0, 0};
+    
+    auto reader = codecFactory->createReader(filePath);
+    if (!reader || !reader->isValid()) return {0, 0};
 
-            // Register in IMediaRegistry to get a real MediaID for waveform lookup
-            if (mediaRegistry_) {
-                MediaManagement::AssetInfo assetInfo{};
-                assetInfo.pathId = nameId;
-                assetInfo.nameId = nameId;
-                assetInfo.durationSamples = desc.totalLengthSamples;
-                assetInfo.sampleRate = desc.sampleRate;
-                assetInfo.numChannels = static_cast<uint16_t>(desc.channelCount);
-                assetInfo.sizeBytes = 0; // Not critical for waveform
-                assetInfo.bitDepth = 16;
+    desc.totalLengthSamples = reader->getTotalFrames();
+    desc.channelCount = reader->getNumChannels();
+    desc.sampleRate = reader->getSampleRate();
+    if (desc.totalLengthSamples == 0 || desc.sampleRate == 0) return {0, 0};
 
-                MediaID mediaId = mediaRegistry_->registerAsset(assetInfo);
-                realMediaId = mediaId.toRaw();
-                desc.mediaId = realMediaId;
+    // Register in IMediaRegistry to get a real MediaID for waveform lookup
+    if (mediaRegistry_) {
+        MediaManagement::AssetInfo assetInfo{};
+        assetInfo.pathId = nameId;
+        assetInfo.nameId = nameId;
+        assetInfo.durationSamples = desc.totalLengthSamples;
+        assetInfo.sampleRate = desc.sampleRate;
+        assetInfo.numChannels = static_cast<uint16_t>(desc.channelCount);
+        assetInfo.sizeBytes = 0; // Not critical for waveform
+        assetInfo.bitDepth = 16;
 
-                // Trigger async waveform peak generation in background
-                if (waveformRenderer_) {
-                    waveformRenderer_->getWaveform(mediaId, MediaManagement::WaveformResolution::OVERVIEW);
-                    waveformRenderer_->getWaveform(mediaId, MediaManagement::WaveformResolution::HIGH);
-                }
-            }
+        MediaID mediaId = mediaRegistry_->registerAsset(assetInfo);
+        realMediaId = mediaId.toRaw();
+        desc.mediaId = realMediaId;
+
+        // Trigger async waveform peak generation in background
+        if (waveformRenderer_) {
+            waveformRenderer_->getWaveform(mediaId, MediaManagement::WaveformResolution::OVERVIEW);
+            waveformRenderer_->getWaveform(mediaId, MediaManagement::WaveformResolution::HIGH);
         }
     }
 
     SourceID srcId = sourceManager->registerSource(desc, filePath);
+
+    if (!sessionManager_ || !sessionManager_->getActiveSession()) return {0, 0};
+    uint32_t projSampleRate = sessionManager_->getActiveSession()->getMetadata().sampleRate;
+    if (projSampleRate == 0) return {0, 0};
+
+    composition::TrackCreateInfo trackInfo{};
+    if (!trackManager->getTrackInfo(targetTrack, trackInfo)) return {0, 0};
+
+    float tempoBpm = sessionManager_->getActiveSession()->getMetadata().initialTempoBPM;
+    if (tempoBpm <= 0.0f) return {0, 0};
 
     // 4. Build region primitive
     composition::TimelineRegion region;
@@ -132,14 +140,7 @@ RegionID ArrangementController::importAudioClip(TrackID targetTrack, const char*
     region.positionSample = startFrame;
     region.sourceStartSample = 0;
 
-    uint32_t projSampleRate = 44100;
-    if (sessionManager_ && sessionManager_->getActiveSession()) {
-        uint32_t sr = sessionManager_->getActiveSession()->getMetadata().sampleRate;
-        if (sr > 0) projSampleRate = sr;
-    }
-    double scaleFactor = (desc.sampleRate > 0 && projSampleRate > 0)
-        ? (static_cast<double>(projSampleRate) / static_cast<double>(desc.sampleRate))
-        : 1.0;
+    double scaleFactor = static_cast<double>(projSampleRate) / static_cast<double>(desc.sampleRate);
     region.sourceLength = static_cast<uint64_t>(std::round(static_cast<double>(desc.totalLengthSamples) * scaleFactor));
 
     region.fadeInSamples = 0;
@@ -148,22 +149,17 @@ RegionID ArrangementController::importAudioClip(TrackID targetTrack, const char*
     region.isMuted = false;
     region.warpMode = WarpMode::BYPASS;
     region.playbackRatio = 1.0f;
-    region.sourceBpm = 120.0f;
+    region.sourceBpm = tempoBpm;
 
     // 5. Add to playlist
     RegionID regId = playlist->addRegion(region, composition::IPlaylist::AUTO_LAYER);
     if (regId.isValid()) {
         trackManager->compileTimelineSnapshot();
         
-        composition::TrackCreateInfo trackInfo{};
-        uint32_t trackColor = 0xFF8B5CF6;
-        if (trackManager->getTrackInfo(targetTrack, trackInfo)) {
-            trackColor = trackInfo.colorARGB;
-        }
         std::string path = filePath;
         size_t lastSlash = path.find_last_of("/\\");
         std::string filename = (lastSlash == std::string::npos) ? path : path.substr(lastSlash + 1);
-        initializeRegionMetadata(regId, filename.c_str(), trackColor);
+        initializeRegionMetadata(regId, filename.c_str(), trackInfo.colorARGB);
 
         auto pipeDesc = trackManager->getPipelineDescriptor(targetTrack);
         std::cout << "[ARRANGEMENT CONTROLLER DIAGNOSTIC] Region added successfully. targetTrack ID=" << targetTrack.id 
@@ -183,6 +179,13 @@ RegionID ArrangementController::insertMidiClip(TrackID targetTrack, uint64_t sta
     composition::IPlaylist* playlist = trackManager->getPlaylist(targetTrack);
     if (!playlist) return {0, 0};
 
+    if (!sessionManager_ || !sessionManager_->getActiveSession()) return {0, 0};
+    float tempoBpm = sessionManager_->getActiveSession()->getMetadata().initialTempoBPM;
+    if (tempoBpm <= 0.0f) return {0, 0};
+
+    composition::TrackCreateInfo trackInfo{};
+    if (!trackManager->getTrackInfo(targetTrack, trackInfo)) return {0, 0};
+
     composition::ClipID clipId{ ++composition::getGlobalClipIdCounter(), 1 };
 
     composition::TimelineRegion region;
@@ -197,18 +200,13 @@ RegionID ArrangementController::insertMidiClip(TrackID targetTrack, uint64_t sta
     region.isMuted = false;
     region.warpMode = WarpMode::BYPASS;
     region.playbackRatio = 1.0f;
-    region.sourceBpm = 120.0f;
+    region.sourceBpm = tempoBpm;
 
     RegionID regId = playlist->addRegion(region, composition::IPlaylist::AUTO_LAYER);
     if (regId.isValid()) {
         trackManager->compileTimelineSnapshot();
         
-        composition::TrackCreateInfo trackInfo{};
-        uint32_t trackColor = 0xFF8B5CF6;
-        if (trackManager->getTrackInfo(targetTrack, trackInfo)) {
-            trackColor = trackInfo.colorARGB;
-        }
-        initializeRegionMetadata(regId, "MIDI Clip", trackColor);
+        initializeRegionMetadata(regId, trackInfo.nameId > 0 ? "MIDI" : "Clip", trackInfo.colorARGB);
 
         if (auto* seq = trackManager->getMIDISequencer(targetTrack)) {
             seq->updateClipPosition(clipId, startFrame, durationFrames);
@@ -246,7 +244,8 @@ composition::IPlaylist* ArrangementController::findPlaylistForRegion(RegionID re
                 count = playlist->getAllRegions(regionsScratch_.data(), static_cast<uint32_t>(regionsScratch_.size()));
             }
             for (uint32_t i = 0; i < count; ++i) {
-                if (regionsScratch_[i].id == regionId) {
+                if (regionsScratch_[i].id.id == regionId.id &&
+                    (regionId.generation == 0 || regionsScratch_[i].id.generation == regionId.generation)) {
                     outInfo = regionsScratch_[i];
                     outTrackId = trackId;
                     return playlist;
@@ -514,7 +513,7 @@ void ArrangementController::setRegionGain(RegionID id, float gainLinear) {
     composition::IPlaylist::RegionInfo info{};
     TrackID trackId = TrackID::invalid();
     if (auto* playlist = findPlaylistForRegion(id, info, trackId)) {
-        playlist->setRegionGain(id, gainLinear);
+        playlist->setRegionGain(info.id, gainLinear);
         trackManager->compileTimelineSnapshot();
     }
 }
@@ -525,7 +524,7 @@ void ArrangementController::setRegionFades(RegionID id, uint32_t fadeInFrames, u
     composition::IPlaylist::RegionInfo info{};
     TrackID trackId = TrackID::invalid();
     if (auto* playlist = findPlaylistForRegion(id, info, trackId)) {
-        playlist->setFades(id, fadeInFrames, fadeOutFrames);
+        playlist->setFades(info.id, fadeInFrames, fadeOutFrames);
         trackManager->compileTimelineSnapshot();
     }
 }
@@ -536,7 +535,7 @@ void ArrangementController::setRegionMuted(RegionID id, bool muted) {
     composition::IPlaylist::RegionInfo info{};
     TrackID trackId = TrackID::invalid();
     if (auto* playlist = findPlaylistForRegion(id, info, trackId)) {
-        playlist->setRegionMuted(id, muted);
+        playlist->setRegionMuted(info.id, muted);
         trackManager->compileTimelineSnapshot();
     }
 }
@@ -547,7 +546,7 @@ void ArrangementController::setRegionWarpMode(RegionID id, WarpMode mode) {
     composition::IPlaylist::RegionInfo info{};
     TrackID trackId = TrackID::invalid();
     if (auto* playlist = findPlaylistForRegion(id, info, trackId)) {
-        playlist->setWarpMode(id, mode);
+        playlist->setWarpMode(info.id, mode);
         trackManager->compileTimelineSnapshot();
     }
 }
@@ -558,7 +557,7 @@ void ArrangementController::setRegionPlaybackRatio(RegionID id, float ratio) {
     composition::IPlaylist::RegionInfo info{};
     TrackID trackId = TrackID::invalid();
     if (auto* playlist = findPlaylistForRegion(id, info, trackId)) {
-        playlist->setPlaybackRatio(id, ratio);
+        playlist->setPlaybackRatio(info.id, ratio);
         trackManager->compileTimelineSnapshot();
     }
 }
@@ -569,7 +568,7 @@ void ArrangementController::setRegionSourceBpm(RegionID id, float bpm) {
     composition::IPlaylist::RegionInfo info{};
     TrackID trackId = TrackID::invalid();
     if (auto* playlist = findPlaylistForRegion(id, info, trackId)) {
-        playlist->setSourceBpm(id, bpm);
+        playlist->setSourceBpm(info.id, bpm);
         trackManager->compileTimelineSnapshot();
     }
 }
