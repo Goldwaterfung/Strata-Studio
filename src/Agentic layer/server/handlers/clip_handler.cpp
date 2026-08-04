@@ -86,6 +86,121 @@ uint16_t parseGridToTicks(std::string_view gridStr, bridge::ITimelineController*
     return 0;
 }
 
+std::string pitchToNoteName(uint8_t pitch) {
+    static const char* kNoteNames[] = {
+        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+    };
+    int octave = (static_cast<int>(pitch) / 12) - 1;
+    int noteMod = static_cast<int>(pitch) % 12;
+    return std::string(kNoteNames[noteMod]) + std::to_string(octave);
+}
+
+bool parseMusicalPitch(std::string_view str, uint8_t& outPitch, std::string& outFormattedNote, std::string& outErrorMessage) {
+    if (str.empty()) {
+        outErrorMessage = "Pitch argument cannot be empty.";
+        return false;
+    }
+
+    std::string s(str);
+
+    // 1. Check if string is a pure integer (or signed integer like "-5" or "+60")
+    bool isInteger = true;
+    size_t startIdx = 0;
+    if (s[0] == '+' || s[0] == '-') {
+        startIdx = 1;
+    }
+    if (startIdx >= s.length()) {
+        isInteger = false;
+    } else {
+        for (size_t i = startIdx; i < s.length(); ++i) {
+            if (!std::isdigit(static_cast<unsigned char>(s[i]))) {
+                isInteger = false;
+                break;
+            }
+        }
+    }
+
+    if (isInteger) {
+        try {
+            long val = std::stol(s);
+            if (val >= 0 && val <= 127) {
+                outPitch = static_cast<uint8_t>(val);
+                outFormattedNote = pitchToNoteName(outPitch);
+                return true;
+            } else {
+                outErrorMessage = "MIDI note pitch '" + s + "' is out of valid range [0..127] (C-1 to G9).";
+                return false;
+            }
+        } catch (...) {
+            outErrorMessage = "MIDI note pitch '" + s + "' integer conversion failed.";
+            return false;
+        }
+    }
+
+    // 2. Parse as musical note (e.g. C4, A5, Db5, F#-1, G9)
+    std::string uStr;
+    uStr.reserve(s.length());
+    for (char c : s) {
+        uStr.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+    }
+
+    int baseNote = -1;
+    char firstChar = uStr[0];
+    switch (firstChar) {
+        case 'C': baseNote = 0; break;
+        case 'D': baseNote = 2; break;
+        case 'E': baseNote = 4; break;
+        case 'F': baseNote = 5; break;
+        case 'G': baseNote = 7; break;
+        case 'A': baseNote = 9; break;
+        case 'B': baseNote = 11; break;
+        default:
+            outErrorMessage = "Invalid MIDI pitch format '" + s + "'. Expected musical note (e.g. C4, A5, Db5) or integer (0..127).";
+            return false;
+    }
+
+    size_t pos = 1;
+    int accidental = 0;
+    if (pos < uStr.length()) {
+        char c2 = uStr[pos];
+        if (c2 == '#' || c2 == 'S') {
+            accidental = 1;
+            pos++;
+        } else if (c2 == 'B') {
+            accidental = -1;
+            pos++;
+        }
+    }
+
+    if (pos >= uStr.length()) {
+        outErrorMessage = "Invalid MIDI pitch format '" + s + "'. Missing octave number (e.g. C4, A5, Db5).";
+        return false;
+    }
+
+    std::string octaveStr = uStr.substr(pos);
+    try {
+        size_t parsedChars = 0;
+        int octave = std::stoi(octaveStr, &parsedChars);
+        if (parsedChars != octaveStr.length()) {
+            outErrorMessage = "Invalid MIDI pitch format '" + s + "'. Extra characters after octave.";
+            return false;
+        }
+
+        int calculatedPitch = (octave + 1) * 12 + baseNote + accidental;
+        if (calculatedPitch >= 0 && calculatedPitch <= 127) {
+            outPitch = static_cast<uint8_t>(calculatedPitch);
+            outFormattedNote = pitchToNoteName(outPitch);
+            return true;
+        } else {
+            outErrorMessage = "MIDI note pitch '" + s + "' is out of valid range [0..127] (C-1 to G9).";
+            return false;
+        }
+    } catch (...) {
+        outErrorMessage = "Invalid MIDI pitch format '" + s + "'. Invalid octave number.";
+        return false;
+    }
+}
+
 } // namespace
 
 ExecutionResult ClipHandler::handleCommand(
@@ -119,7 +234,14 @@ ExecutionResult ClipHandler::handleCommand(
 
             uint32_t trackId = static_cast<uint32_t>(std::stoul(std::string(trackStr)));
             uint32_t clipId = static_cast<uint32_t>(std::stoul(std::string(clipStr)));
-            uint8_t pitch = static_cast<uint8_t>(std::stoul(std::string(pitchStr)));
+            
+            uint8_t pitch = 0;
+            std::string formattedPitch;
+            std::string pitchErr;
+            if (!parseMusicalPitch(pitchStr, pitch, formattedPitch, pitchErr)) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", pitchErr);
+            }
+
             uint8_t vel = static_cast<uint8_t>(std::stoul(std::string(velStr)));
             uint8_t chan = static_cast<uint8_t>(std::stoul(std::string(chanStr)));
 
@@ -147,7 +269,8 @@ ExecutionResult ClipHandler::handleCommand(
                 {"track", std::string(trackStr)},
                 {"clip", std::string(clipStr)},
                 {"note_id", std::to_string(nid.id)},
-                {"pitch", std::string(pitchStr)},
+                {"pitch", formattedPitch},
+                {"pitch_number", std::to_string(pitch)},
                 {"velocity", std::string(velStr)},
                 {"start", std::string(startStr)},
                 {"dur", std::string(durStr)}

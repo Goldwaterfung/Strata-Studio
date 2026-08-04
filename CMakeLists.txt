@@ -260,6 +260,13 @@ if(APPLE)
     set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications")
     set(CPACK_PRODUCTBUILD_IDENTITY_NAME "" CACHE STRING "Code signing identity for productbuild")
     
+    # Restrict installation strictly to the system root volume (/Applications)
+    # This removes fallbacks to the user's home directory or anywhere else.
+    set(CPACK_PRODUCTBUILD_DOMAINS TRUE)
+    set(CPACK_PRODUCTBUILD_DOMAINS_ROOT TRUE)
+    set(CPACK_PRODUCTBUILD_DOMAINS_USER FALSE)
+    set(CPACK_PRODUCTBUILD_DOMAINS_ANYWHERE FALSE)
+    
     # Configure post-install script to automatically symlink daw-cli
     set(CPACK_POSTFLIGHT_APPLICATION_SCRIPT "${CMAKE_SOURCE_DIR}/scripts/packaging/postinstall.sh")
 

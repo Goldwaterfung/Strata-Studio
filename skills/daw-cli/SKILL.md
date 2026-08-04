@@ -304,10 +304,10 @@ daw-cli clip add-midi --track 1 --start 1.1.0 --dur 4.0.0
 
 #### Add MIDI Note Event
 ```bash
-daw-cli midi add-note --track 1 --clip 1 --pitch 60 --velocity 100 --start 1.1.0 --dur 1.0.0
+daw-cli midi add-note --track 1 --clip 1 --pitch C4 --velocity 100 --start 1.1.0 --dur 1.0.0
 ```
 - **Success Symbol**: `MIDI_NOTE_ADDED`
-- **Options**: `--track <uint32>`, `--clip <uint32>`, `--pitch <0..127>`, `--velocity <0..127>`, `--start <BBT>`, `--dur <BBT>`
+- **Options**: `--track <uint32>`, `--clip <uint32>`, `--pitch <musical_note, e.g. C4, A5, Db5 or integer 0..127>`, `--velocity <0..127>`, `--start <BBT>`, `--dur <BBT>`
 
 #### List Arrangement Clips
 ```bash

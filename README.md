@@ -380,7 +380,7 @@ Once installed, agents will use [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL
 
 - `daw-cli clip add-audio --track 1 --path "/audio/vocal.wav" --start 1.1.0` — Imports an audio clip onto a track timeline.
 - `daw-cli clip add-midi --track 1 --start 1.1.0 --dur 4.0.0` — Inserts a new MIDI clip region on a track.
-- `daw-cli midi add-note --track 1 --clip 1 --pitch 60 --velocity 100 --start 1.1.0 --dur 1.0.0` — Adds a MIDI note event to a clip.
+- `daw-cli midi add-note --track 1 --clip 1 --pitch C4 --velocity 100 --start 1.1.0 --dur 1.0.0` — Adds a MIDI note event to a clip.
 - `daw-cli clip list --track 1` — Lists all arrangement clips with start bar, duration, gain, and mute status.
 - `daw-cli clip set-gain --track 1 --clip 1 --db -3.0` — Sets clip region volume gain in dB.
 - `daw-cli clip set-mute --track 1 --clip 1 --on true` — Mutes or unmutes a specific clip.

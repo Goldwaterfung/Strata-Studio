@@ -324,7 +324,7 @@
           "options": {
             "--track": { "type": "integer", "required": true },
             "--clip": { "type": "integer", "description": "Clip ID" },
-            "--pitch": { "type": "integer", "required": true, "description": "MIDI note pitch (0..127)" },
+            "--pitch": { "type": "string", "required": true, "description": "Musical note pitch (e.g. C4, A5, Db5, F#-1, G9 or integer 0..127)" },
             "--velocity": { "type": "integer", "required": true, "description": "MIDI velocity (0..127)" },
             "--start": { "type": "string", "required": true, "description": "BBT start position" },
             "--dur": { "type": "string", "required": true, "description": "BBT duration string" }
