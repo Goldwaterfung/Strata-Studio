@@ -3,15 +3,15 @@ name: daw-cli
 description: >-
   Instructs agents to control Strata Studio DAW via the daw-cli command-line
   IPC interface. Covers session state, transport, track management, gain
-  staging, and VST3/AU plugin hosting. Requires the DAW application to be
-  running.
+  staging, VST3/AU plugin hosting, clips, and MIDI timeline editing. Requires
+  the DAW application to be running.
 ---
 
 # Strata Studio DAW CLI Control
 
 ## Overview
 
-`daw-cli` is the command-line IPC client for **Strata Studio DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, and host VST3/AU/CLAP plugins in real time.
+`daw-cli` is the command-line IPC client for **Strata Studio DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, and execute clip and MIDI timeline edits in real time.
 
 All commands communicate with the running DAW application using a UNIX domain socket.
 
@@ -283,6 +283,94 @@ daw-cli prep gain-stage --track 1..8 --target-rms -18.0
 ```
 - **Success Symbol**: `GAIN_STAGE_COMPLETED`
 - **Options**: `--track <range>`, `--target-rms <float_dB>` (Default: `-18.0`)
+
+---
+
+### 5. Clips & Timeline Editing (clip, midi)
+
+#### Add Audio Clip
+```bash
+daw-cli clip add-audio --track 1 --path "/audio/vocal.wav" --start 1.1.0
+```
+- **Success Symbol**: `CLIP_ADDED`
+- **Options**: `--track <uint32>`, `--path "<string>"`, `--start <BBT>`
+
+#### Add MIDI Clip
+```bash
+daw-cli clip add-midi --track 1 --start 1.1.0 --dur 4.0.0
+```
+- **Success Symbol**: `CLIP_ADDED`
+- **Options**: `--track <uint32>`, `--start <BBT>`, `--dur <BBT>`
+
+#### Add MIDI Note Event
+```bash
+daw-cli midi add-note --track 1 --clip 1 --pitch 60 --velocity 100 --start 1.1.0 --dur 1.0.0
+```
+- **Success Symbol**: `MIDI_NOTE_ADDED`
+- **Options**: `--track <uint32>`, `--clip <uint32>`, `--pitch <0..127>`, `--velocity <0..127>`, `--start <BBT>`, `--dur <BBT>`
+
+#### List Arrangement Clips
+```bash
+daw-cli clip list --track 1 [--bar 1-8]
+```
+- **Success Symbol**: `CLIP_LIST`
+- **Options**: `--track <uint32>`, `--bar <start_bar-end_bar>`
+
+#### Set Clip Gain (dB)
+```bash
+daw-cli clip set-gain --track 1 --clip 1 --db -3.0
+```
+- **Success Symbol**: `CLIP_GAIN_UPDATED`
+- **Options**: `--track <uint32>`, `--clip <uint32>`, `--db <float>`
+
+#### Mute / Unmute Clip
+```bash
+daw-cli clip set-mute --track 1 --clip 1 --on true
+```
+- **Success Symbol**: `CLIP_MUTE_UPDATED`
+- **Options**: `--track <uint32>`, `--clip <uint32>`, `--on <true|false>`
+
+#### Split Clip
+```bash
+daw-cli clip split --track 1 --clip 1 --at 2.1.0
+```
+- **Success Symbol**: `CLIP_SPLIT`
+- **Options**: `--track <uint32>`, `--clip <uint32>`, `--at <BBT>`
+
+#### Trim Silence
+```bash
+daw-cli clip trim-silence --track 1 --clip 1 --threshold -48.0 --fade-ms 5.0
+```
+- **Success Symbol**: `CLIP_SILENCE_TRIMMED`
+- **Options**: `--track <uint32>`, `--clip <uint32>`, `--threshold <float_dB>`, `--fade-ms <float>`
+
+#### Quantize Clip / MIDI
+```bash
+daw-cli clip quantize --track 1 --clip 1 --grid 1/16 --strength 1.0
+```
+- **Success Symbol**: `MIDI_CLIPS_QUANTIZED` / `CLIPS_QUANTIZED`
+- **Options**: `--track <uint32>`, `--clip <uint32>`, `--grid <grid_fraction>`, `--strength <float_0..1>`
+
+#### Merge Clips
+```bash
+daw-cli clip merge --track 1 --start 1.1.0 --end 5.1.0
+```
+- **Success Symbol**: `CLIPS_MERGED`
+- **Options**: `--track <uint32>`, `--start <BBT>`, `--end <BBT>`, `--clips "<list>"`
+
+#### Move Clip
+```bash
+daw-cli clip move --track 1 --clip 1 --to-pos 3.1.0 [--to-track 2]
+```
+- **Success Symbol**: `CLIP_MOVED`
+- **Options**: `--track <uint32>`, `--clip <uint32>`, `--to-pos <BBT>`, `--to-track <uint32>`
+
+#### Nudge Clip Position
+```bash
+daw-cli clip nudge --track 1 --clip 1 --by +1/16
+```
+- **Success Symbol**: `CLIP_NUDGED`
+- **Options**: `--track <uint32>`, `--clip <uint32>`, `--by <+|-grid_fraction>`
 
 ---
 

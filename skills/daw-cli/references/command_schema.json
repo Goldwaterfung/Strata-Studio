@@ -208,6 +208,130 @@
           "successSymbol": "PLUGIN_CHAIN_COPIED"
         }
       }
+    },
+    "clip": {
+      "description": "Manages arrangement timeline clips, trimming, gain, mute, split, and quantization.",
+      "subcommands": {
+        "add-audio": {
+          "description": "Imports an audio clip onto a track timeline.",
+          "options": {
+            "--track": { "type": "integer", "required": true, "description": "Target track ID" },
+            "--path": { "type": "string", "required": true, "description": "Absolute filesystem path to audio file" },
+            "--start": { "type": "string", "required": true, "description": "BBT position (e.g. 1.1.0)" }
+          },
+          "successSymbol": "CLIP_ADDED"
+        },
+        "add-midi": {
+          "description": "Inserts a new MIDI clip region on a track.",
+          "options": {
+            "--track": { "type": "integer", "required": true, "description": "Target track ID" },
+            "--start": { "type": "string", "required": true, "description": "BBT start position (e.g. 1.1.0)" },
+            "--dur": { "type": "string", "required": true, "description": "BBT duration string (e.g. 4.0.0)" }
+          },
+          "successSymbol": "CLIP_ADDED"
+        },
+        "list": {
+          "description": "Lists arrangement clips.",
+          "options": {
+            "--track": { "type": "integer", "required": true, "description": "Track ID" },
+            "--bar": { "type": "string", "description": "Bar range filter (e.g. 1-8)" }
+          },
+          "successSymbol": "CLIP_LIST"
+        },
+        "set-gain": {
+          "description": "Sets region gain in dB.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--clip": { "type": "integer", "required": true },
+            "--db": { "type": "number", "required": true }
+          },
+          "successSymbol": "CLIP_GAIN_UPDATED"
+        },
+        "set-mute": {
+          "description": "Mutes or unmutes a clip.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--clip": { "type": "integer", "required": true },
+            "--on": { "type": "boolean", "required": true }
+          },
+          "successSymbol": "CLIP_MUTE_UPDATED"
+        },
+        "split": {
+          "description": "Splits a clip into two regions at position.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--clip": { "type": "integer", "required": true },
+            "--at": { "type": "string", "required": true }
+          },
+          "successSymbol": "CLIP_SPLIT"
+        },
+        "trim-silence": {
+          "description": "Trims lead and tail silence on a clip.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--clip": { "type": "integer", "required": true },
+            "--threshold": { "type": "number", "required": true, "description": "Silence threshold in dB (e.g. -48.0)" },
+            "--fade-ms": { "type": "number", "required": true, "description": "Micro-fade duration in ms (e.g. 5.0)" }
+          },
+          "successSymbol": "CLIP_SILENCE_TRIMMED"
+        },
+        "quantize": {
+          "description": "Quantizes notes or clip start positions to grid.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--clip": { "type": "integer", "description": "Clip ID (0 for all)" },
+            "--grid": { "type": "string", "required": true, "description": "Grid division (1/1, 1/4, 1/16, 1/8T)" },
+            "--strength": { "type": "number", "required": true, "description": "Quantize strength (0.0..1.0)" }
+          },
+          "successSymbol": "CLIPS_QUANTIZED"
+        },
+        "merge": {
+          "description": "Merges pattern clips.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--start": { "type": "string", "description": "BBT start position" },
+            "--end": { "type": "string", "description": "BBT end position" },
+            "--clips": { "type": "string", "description": "Comma-separated clip ID list" }
+          },
+          "successSymbol": "CLIPS_MERGED"
+        },
+        "move": {
+          "description": "Relocates a clip to a target position.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--clip": { "type": "integer", "required": true },
+            "--to-pos": { "type": "string", "required": true },
+            "--to-track": { "type": "integer", "description": "Target track ID" }
+          },
+          "successSymbol": "CLIP_MOVED"
+        },
+        "nudge": {
+          "description": "Nudges clip position by grid fraction.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--clip": { "type": "integer", "required": true },
+            "--by": { "type": "string", "required": true, "description": "Grid offset (e.g. +1/16, -1/8)" }
+          },
+          "successSymbol": "CLIP_NUDGED"
+        }
+      }
+    },
+    "midi": {
+      "description": "MIDI editor note manipulation commands.",
+      "subcommands": {
+        "add-note": {
+          "description": "Adds a MIDI note event to a clip.",
+          "options": {
+            "--track": { "type": "integer", "required": true },
+            "--clip": { "type": "integer", "description": "Clip ID" },
+            "--pitch": { "type": "integer", "required": true, "description": "MIDI note pitch (0..127)" },
+            "--velocity": { "type": "integer", "required": true, "description": "MIDI velocity (0..127)" },
+            "--start": { "type": "string", "required": true, "description": "BBT start position" },
+            "--dur": { "type": "string", "required": true, "description": "BBT duration string" }
+          },
+          "successSymbol": "MIDI_NOTE_ADDED"
+        }
+      }
     }
   }
 }
