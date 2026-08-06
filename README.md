@@ -30,9 +30,9 @@
 
 ## Overview
 
-**Strata Studio** is an open-source, human-agent collaborative DAW designed for creators, sound designers, and producers. 
+You opened your DAW to make music, not to spend your time on session setup. **Stop being your DAW's intern.**
 
-Instead of spending hours clicking through menus to gain-stage tracks, map automation curves, trim clip silence, or set up plugin chains, you can **pair-program your session directly with your AI agent** while maintaining full creative control over your music.
+**Strata Studio** gives your AI agent hands inside your DAW—letting Claude, Cursor, or Codex handle session prep, plugin chains, and clip cleanup while you stay in the flow state.
 
 ---
 
@@ -40,21 +40,15 @@ Instead of spending hours clicking through menus to gain-stage tracks, map autom
 
 Strata Studio ships with a pre-packaged agent skill ([`skills/daw-cli/`](skills/daw-cli/)) built on the open [Agent Skills](https://agentskills.io) standard.
 
-### Option 1: One-line install (recommended)
+### Option 1: One-line prompt install (recommended)
 
 Open your skills-compatible agent — **Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode**, and 50+ more — and tell it:
 
 ```text
-Install this skill for me: https://github.com/Goldwaterfung/Strata-Studio
+Install the daw-cli skill from https://github.com/Goldwaterfung/Strata-Studio
 ```
 
-Or use the universal CLI installer ([vercel-labs/skills](https://github.com/vercel-labs/skills)):
-
-```bash
-npx skills add Goldwaterfung/Strata-Studio
-```
-
-It auto-detects your runtime and installs the `daw-cli` skill instruction set so your agent immediately learns how to control Strata Studio.
+Your agent will discover `skills/daw-cli/SKILL.md` in the repository and copy it into its active skills directory.
 
 <details>
 <summary><b>Option 2: Manual Skill Directory Setup</b></summary>
