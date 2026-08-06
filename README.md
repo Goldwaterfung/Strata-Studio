@@ -16,10 +16,10 @@
 ---
 
 <p align="center">
-  <a href="#quick-start--agentic-install">Quick Start</a> •
-  <a href="#examples">Examples</a> •
+  <a href="#quick-start--agentic-setup">Quick Start</a> •
+  <a href="#what-your-ai-agent-can-do-in-strata-studio">Agent Capabilities</a> •
   <a href="#key-features">Key Features</a> •
-  <a href="#architecture--developer-guide">Developer Guide</a> •
+  <a href="#developer-guide--building-from-source">Developer Guide</a> •
   <a href="#license">License</a>
 </p>
 
@@ -148,31 +148,45 @@ Agent   ❯ [Strata Agentic Engine]
   </tr>
 </table>
 
+## What Your AI Agent Can Do in Strata Studio
+
+Instead of manually clicking through complex menus, searching for shortcuts, or tweaking individual knobs, you command your AI assistant (**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini**, etc.) in plain English. Here is what your assistant can do in your session right now:
+
+<table width="100%">
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🎚️ Smart Gain-Staging & Session Leveling</h3>
+      <p>Ask your agent to balance track volumes, adjust panning, or auto-prep your multitracks so your mix stays clear, punchy, and headroom-ready without clipping.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🔌 VST3 / AU Plugin Hosting & FX Chains</h3>
+      <p>Tell your agent to scan installed VST3/AU effect plugins (FabFilter, iZotope, Waves), insert EQs or compressors, and copy mixing chains across multiple tracks instantly.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🎹 MIDI Sequencing & Clip Editing</h3>
+      <p>Sequence drum patterns, create synth lead MIDI clips, transpose note pitch, arrange audio clips on the timeline, and slice takes using simple conversational prompts.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>⏱️ Playback Transport & Session Control</h3>
+      <p>Set session tempo (BPM), adjust time signatures, control playback transport (play, stop, seek playhead), and organize track colors and names on the fly.</p>
+    </td>
+  </tr>
+</table>
+
+### 🚀 Available AI Session Commands
+
+* **Session State & Transport**: Set project tempo, update time signatures, jump playhead position, play/pause/stop transport.
+* **Track Setup & Leveling**: Add audio/instrument tracks, set track volume & pan, mute/solo tracks, run automatic gain staging.
+* **Plugin Management**: Insert VST3/AU plugins, tweak normalized parameters, copy plugin chains from one track to another.
+* **Timeline & MIDI Editing**: Place audio clips, set start offsets & durations, program MIDI notes, transpose melodies.
+
 ---
 
-## Architecture & Developer Guide
+## Developer Guide & Building from Source
 
-You talk to your AI agent in plain English. Your agent reads [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) and translates your intent into IPC actions behind the scenes—releasing you from memorizing terminal commands, syntax, or flags.
-
-<details>
-<summary><b>IPC Protocol & CLI Command Reference (daw-cli)</b></summary>
-<br>
-
-Strata Studio features an Agentic IPC daemon and command-line utility (`daw-cli`) designed for AI agents and automated session control.
-
-For complete CLI command flags, JSON schemas, error codes, and IPC protocol documentation, see [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md).
-
-</details>
-
-<br>
-
-<details>
-<summary><b>Engine Architecture & 8-Layer Hierarchy</b></summary>
-<br>
-
-Strata Studio is engineered in C++20 around a strict 8-layer architecture to guarantee real-time safety, modular maintainability, and deterministic DSP execution.
-
-</details>
+Strata Studio is an open-source, high-performance C++20 DAW engine built for AI-driven music production. AI agents control the DAW via the [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) skill definition.
 
 <details>
 <summary><b>Building & Compiling from Source</b></summary>

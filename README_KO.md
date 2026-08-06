@@ -17,9 +17,9 @@
 
 <p align="center">
   <a href="#빠른-시작--에이전트-설정">빠른 시작</a> •
-  <a href="#사용-예시">사용 예시</a> •
-  <a href="#핵심-기능">핵심 기능</a> •
-  <a href="#개발자-가이드--아키텍처">개발자 가이드</a> •
+  <a href="#strata-studio에서-ai-에이전트가-할-수-있는-일">에이전트 기능</a> •
+  <a href="#주요-기능">주요 기능</a> •
+  <a href="#개발자-가이드--소스-컴파일">개발자 가이드</a> •
   <a href="#라이선스">라이선스</a>
 </p>
 
@@ -147,31 +147,45 @@ Agent   ❯ [Strata Agentic Engine]
   </tr>
 </table>
 
+## Strata Studio에서 AI 에이전트가 할 수 있는 일
+
+복잡한 메뉴를 클릭하거나 단축키를 외우고 노브를 수동으로 조작하는 대신, AI 어시스턴트(**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini** 등)에 자연어로 명령하기만 하면 됩니다:
+
+<table width="100%">
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🎚️ 스마트 게인 스테이징 & 트랙 레벨링</h3>
+      <p>에이전트가 트랙 볼륨과 팬을 자동으로 조절하고 멀티트랙 게인 스테이징(Gain-Staging)을 수행하여 클리핑 없이 명확하고 다이내믹한 믹스를 완성합니다.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🔌 VST3 / AU 플러그인 호스팅 & FX 체인</h3>
+      <p>설치된 이펙트 플러그인(FabFilter, iZotope, Waves 등)을 스캔하여 EQ/컴프레서를 자동 삽입하고, 완성된 이펙트 체인을 다른 트랙으로 즉시 복사합니다.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🎹 MIDI 시퀀싱 & 타임라인 클립 편집</h3>
+      <p>드럼 패턴 생성, 신디사이저 리드 MIDI 클립 작성, 전조(Transpose), 타임라인 오디오 클립 배치 및 분할을 대화형 프롬프트로 빠르게 처리합니다.</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>⏱️ 재생 전송 & 세션 관리</h3>
+      <p>프로젝트 템포(BPM) 및 박자 설정, 재생/정지/플레이헤드 이동 제어, 트랙 색상 및 이름 정리를 실시간으로 수행합니다.</p>
+    </td>
+  </tr>
+</table>
+
+### 🚀 지원되는 AI 음악 제작 명령어
+
+* **세션 & 재생 제어**: 프로젝트 BPM 설정, 박자 변경, 플레이헤드 이동, 재생/일시정지/정지.
+* **트랙 생성 & 레벨링**: 오디오/악기 트랙 추가, 볼륨 및 팬 설정, 뮤트/솔로, 자동 게인 스테이징.
+* **플러그인 관리**: VST3/AU 플러그인 장착, 파라미터 미세 조절, 트랙 간 이펙트 체인 복사.
+* **타임라인 & MIDI 편집**: 오디오 클립 배치, 시작 오프셋 및 길이 조절, MIDI 노트 작성, 멜로디 전조.
+
 ---
 
-## 개발자 가이드 & 아키텍처
+## 개발자 가이드 & 소스 컴파일
 
-음악 크리에이터는 AI 어시스턴트와 자연어로 대화하기만 하면 됩니다. 에이전트가 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md)를 참조하여 내부 IPC 명령으로 자동 변환하므로 터미널 명령어나 구문, 플래그를 암기할 필요가 없습니다.
-
-<details>
-<summary><b>IPC 프로토콜 & CLI 명령어 참조 (daw-cli)</b></summary>
-<br>
-
-Strata Studio에는 AI 에이전트 및 자동 세션 제어를 위해 설계된 전용 Agentic IPC 데몬과 CLI 유틸리티(`daw-cli`)가 포함되어 있습니다.
-
-전체 CLI 명령어 플래그, JSON 스키마, 에러 코드 및 IPC 프로토콜 문서는 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md)를 참조하세요.
-
-</details>
-
-<br>
-
-<details>
-<summary><b>엔진 아키텍처 (8계층 구조)</b></summary>
-<br>
-
-Strata Studio는 엄격한 C++20 8계층 아키텍처로 설계되어 실시간 오디오 안정성, 모듈화된 유지보수성, 결정론적 DSP 실행을 보장합니다.
-
-</details>
+Strata Studio는 AI 기반 음악 제작을 위해 구축된 오픈 소스 고성능 C++20 DAW 엔진입니다. AI 에이전트는 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 스킬 정의를 통해 DAW와 통신합니다.
 
 <details>
 <summary><b>소스 코드 빌드 및 컴파일</b></summary>

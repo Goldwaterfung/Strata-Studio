@@ -17,10 +17,10 @@
 
 <p align="center">
   <a href="#快速開始--agentic-設定">快速開始</a> •
-  <a href="#使用範例">使用範例</a> •
+  <a href="#ai-agent-在-strata-studio-中能為你做些什麼">Agent 功能</a> •
   <a href="#核心特性">核心特性</a> •
-  <a href="#開發者與架構指南">開發者指南</a> •
-  <a href="#開源協議">開源協議</a>
+  <a href="#開發者指南與原始碼編譯">開發者指南</a> •
+  <a href="#許可證">許可證</a>
 </p>
 
 <p align="center">
@@ -147,34 +147,48 @@ Agent   ❯ [Strata Agentic Engine]
   </tr>
 </table>
 
+## AI Agent 在 Strata Studio 中能為你做些什麼
+
+無需繁瑣地點擊選單、記憶快捷鍵或手動調節每一個旋鈕，你只需用自然語言命令你的 AI 助手（**Claude Code**, **Cursor**, **Codex**, **Hermes**, **Gemini** 等）。以下是你的 AI 助手目前能為你完成的工作：
+
+<table width="100%">
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🎚️ 智慧增益平衡 & 專案聲標調配</h3>
+      <p>讓 Agent 自動平衡各音軌音量、調整聲相 (Pan)，或為多軌素材進行自動增益預調 (Gain-Staging)，確保混音清晰、富有衝擊力且留有充足動態餘量。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🔌 VST3 / AU 外掛程式掛載 & 效果器鏈複製</h3>
+      <p>告訴 Agent 掃描已安裝的效果器外掛程式（FabFilter, iZotope, Waves 等），自動插入 EQ 或壓縮器，並將滿意的效果器鏈瞬間複製到其他音軌。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🎹 MIDI 編曲 & 時間軸剪輯</h3>
+      <p>編寫鼓組節奏、生成合成器 MIDI 片段、轉調音高、排列時間軸上的音訊剪輯 (Audio Clips)，無需滑鼠點按即可完成編段修改。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>⏱️ 播控傳輸 & 專案狀態管理</h3>
+      <p>隨時設定專案速度 (BPM)、拍號、控制播放與停止、跳轉播放指針，並即時整理音軌顏色與名稱。</p>
+    </td>
+  </tr>
+</table>
+
+### 🚀 已支援的 AI 音樂製作指令
+
+* **專案與播放控制**：設定專案 BPM、修改拍號、跳轉播放指針、播放/暫停/停止。
+* **音軌建立與平衡**：新建音訊/樂器音軌、設定音量與聲相、靜音/獨奏、自動增益平衡 (Gain Staging)。
+* **外掛程式管理**：掛載 VST3/AU 外掛程式、微調歸一化參數、在不同音軌間一鍵複製效果器鏈。
+* **時間軸與 MIDI 編輯**：放置音訊剪輯、設定起始偏移與時長、編寫 MIDI 音符、旋律轉調。
+
 ---
 
-## 開發者與架構指南
+## 開發者指南與原始碼編譯
 
-作為音樂創作者，你只需用自然語言與 AI 交流。Agent 會自動讀取 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 並將其轉換為底層的 IPC 操作——你無需記憶任何終端命令、語法或參數標誌。
-
-<details>
-<summary><b>IPC 協定與 CLI 命令參考 (daw-cli)</b></summary>
-<br>
-
-Strata Studio 包含專為 AI Agent 和自動化工程控制設計的 Agentic IPC 守護進程與命令列工具 (`daw-cli`)。
-
-完整 CLI 命令標誌、JSON Schema、錯誤碼及 IPC 協定文件，請參閱 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md)。
-
-</details>
-
-<br>
+Strata Studio 是一款專為 AI 驅動音樂製作打造的開源高性能 C++20 DAW 引擎。AI Agent 透過 [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) 技能規範與 DAW 進行互動。
 
 <details>
-<summary><b>引擎架構 (8 層分層模型)</b></summary>
-<br>
-
-Strata Studio 基於嚴謹的 C++20 8 層架構構建，保障實時音訊安全性、模組化可維護性與確定性 DSP 執行。
-
-</details>
-
-<details>
-<summary><b>從原始碼構建與編譯</b></summary>
+<summary><b>從原始碼建置與編譯</b></summary>
 <br>
 
 ### 前置條件
