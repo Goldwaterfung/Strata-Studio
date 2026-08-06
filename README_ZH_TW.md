@@ -46,11 +46,18 @@
 
 無需編寫任何終端命令，也不需要手動設定編譯環境。打開你常用的 AI Agent（**Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode** 等 50+ 款工具），直接告訴它完成設定：
 
-### 1. 安裝 Skill（讓 Agent 學會控制 DAW）
-告訴你的 Agent：
+### 1. 複製程式碼庫
+將專案程式碼庫複製到本地環境：
+
+```bash
+git clone https://github.com/Goldwaterfung/Strata-Studio.git
+cd Strata-Studio
+```
+
+或者告訴你的 AI Agent：
 
 ```text
-從 https://github.com/Goldwaterfung/Strata-Studio 安裝 daw-cli skill
+幫我複製 https://github.com/Goldwaterfung/Strata-Studio 並設定該專案
 ```
 
 ### 2. 編譯並安裝 Strata Studio（Agent 自動編譯應用）
@@ -61,6 +68,13 @@
 ```
 
 *(你的 Agent 會在背景自動執行 `./scripts/install_dependencies.sh` 和 `./scripts/build.sh release --package`)*。
+
+### 3. 安裝 Skill（讓 Agent 學會控制 DAW）
+告訴你的 Agent：
+
+```text
+從 https://github.com/Goldwaterfung/Strata-Studio 安裝 daw-cli skill
+```
 
 <details>
 <summary><b>方案 2：手動設定 Skill 目錄</b></summary>

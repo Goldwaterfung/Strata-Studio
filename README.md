@@ -47,11 +47,18 @@ You opened your DAW to create music—not to burn half your brain on shortcuts, 
 
 No terminal commands or manual compilation required. Open your AI agent (**Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode**, and 50+ more) and tell it to handle the setup:
 
-### 1. Install the Skill (Teaches your agent how to control DAW)
-Tell your agent:
+### 1. Clone the Repository
+Clone the project repository to your local system:
+
+```bash
+git clone https://github.com/Goldwaterfung/Strata-Studio.git
+cd Strata-Studio
+```
+
+Or tell your AI agent:
 
 ```text
-Install the daw-cli skill from https://github.com/Goldwaterfung/Strata-Studio
+Clone https://github.com/Goldwaterfung/Strata-Studio and set up the project for me
 ```
 
 ### 2. Build & Setup Strata Studio (Agent compiles the app)
@@ -62,6 +69,13 @@ Build and package Strata Studio for me
 ```
 
 *(Your agent will automatically run `./scripts/install_dependencies.sh` and `./scripts/build.sh release --package` under the hood).*
+
+### 3. Install the Skill (Teaches your agent how to control DAW)
+Tell your agent:
+
+```text
+Install the daw-cli skill from https://github.com/Goldwaterfung/Strata-Studio
+```
 
 <details>
 <summary><b>Option 2: Manual Skill Directory Setup</b></summary>

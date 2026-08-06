@@ -46,11 +46,18 @@
 
 터미널 명령어나 수동 컴파일이 필요하지 않습니다. 사용 중인 AI 에이전트(**Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode** 등 50개 이상의 도구)를 열고 설정을 요청하세요:
 
-### 1. 스킬 설치 (에이전트에게 DAW 제어법 학습)
-에이전트에게 입력:
+### 1. 리포지토리 클론
+프로젝트 리포지토리를 로컬 환경에 클론합니다:
+
+```bash
+git clone https://github.com/Goldwaterfung/Strata-Studio.git
+cd Strata-Studio
+```
+
+또는 AI 에이전트에게 입력:
 
 ```text
-https://github.com/Goldwaterfung/Strata-Studio 에서 daw-cli 스킬을 설치해 줘
+https://github.com/Goldwaterfung/Strata-Studio 를 클론하고 프로젝트를 설정해 줘
 ```
 
 ### 2. Strata Studio 빌드 및 설정 (에이전트가 앱 컴파일)
@@ -61,6 +68,13 @@ Strata Studio를 빌드하고 패키징해 줘
 ```
 
 *(에이전트가 백그라운드에서 `./scripts/install_dependencies.sh` 및 `./scripts/build.sh release --package`를 자동으로 실행합니다)*.
+
+### 3. 스킬 설치 (에이전트에게 DAW 제어법 학습)
+에이전트에게 입력:
+
+```text
+https://github.com/Goldwaterfung/Strata-Studio 에서 daw-cli 스킬을 설치해 줘
+```
 
 <details>
 <summary><b>옵션 2: 수동 스킬 디렉터리 설정</b></summary>

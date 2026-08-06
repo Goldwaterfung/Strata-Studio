@@ -2,13 +2,13 @@
 
 ## 1. Agentic One-Prompt Setup (Recommended)
 
-Open your AI agent (**Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode**, etc.) and tell it:
+Open your AI agent (**Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode**, etc.) inside this project directory and tell it:
 
 ```text
 Build and package Strata Studio for me
 ```
 
-*(Your agent will automatically execute `./scripts/install_dependencies.sh` and `./scripts/build.sh release --package`).*
+*(Your agent will automatically execute `./scripts/install_dependencies.sh` and `./scripts/build.sh release --package` under the hood).*
 
 ---
 

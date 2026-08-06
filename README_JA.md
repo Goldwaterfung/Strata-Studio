@@ -46,11 +46,18 @@
 
 ターミナルコマンドや手動コンパイルは不要です。お使いのAIエージェント（**Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode** など 50 以上のツール）を開き、セットアップを指示してください：
 
-### 1. スキルのインストール（エージェントにDAW操作を学習させる）
-エージェントに伝える：
+### 1. リポジトリのクローン
+プロジェクトのリポジトリをローカル環境にクローンします：
+
+```bash
+git clone https://github.com/Goldwaterfung/Strata-Studio.git
+cd Strata-Studio
+```
+
+または AI エージェントに伝える：
 
 ```text
-https://github.com/Goldwaterfung/Strata-Studio から daw-cli スキルをインストールしてください
+https://github.com/Goldwaterfung/Strata-Studio をクローンしてプロジェクトをセットアップしてください
 ```
 
 ### 2. Strata Studioのビルド＆セットアップ（エージェントがアプリをコンパイル）
@@ -61,6 +68,13 @@ Strata Studio をビルドしてパッケージ化してください
 ```
 
 *(エージェントがバックグラウンドで `./scripts/install_dependencies.sh` と `./scripts/build.sh release --package` を自動実行します)*。
+
+### 3. スキルのインストール（エージェントにDAW操作を学習させる）
+エージェントに伝える：
+
+```text
+https://github.com/Goldwaterfung/Strata-Studio から daw-cli スキルをインストールしてください
+```
 
 <details>
 <summary><b>オプション2：スキルディレクトリの手動セットアップ</b></summary>
