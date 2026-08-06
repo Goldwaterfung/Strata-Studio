@@ -37,7 +37,7 @@
 
 ## Overview
 
-You opened your DAW to create music—not to spend half your studio time balancing track volumes, cleaning up clip noise, or setting up effect chains. **Stop being your DAW's intern.**
+You opened your DAW to create music—not to burn half your brain on shortcuts, modifier keys, and complex control interfaces. **Let tools serve your creativity, not your memory.**
 
 **Strata Studio** lets your AI assistant control your DAW so you can focus purely on making music. Instead of spending 30 minutes manually levelling tracks for streaming, removing background noise from recordings, or routing effect plugins across every track, just tell your AI assistant (**Claude Code**, **Cursor**, **Codex**, **Hermes**, or **Gemini**) what you want in plain English. Your session gets prepped, balanced, and ready for production in seconds.
 
