@@ -17,6 +17,7 @@
 
 <p align="center">
   <a href="#quick-start--agentic-setup">Quick Start</a> •
+  <a href="#showcase-use-cases">Showcase Use Cases</a> •
   <a href="#what-your-ai-agent-can-do-in-strata-studio">Agent Capabilities</a> •
   <a href="#key-features">Key Features</a> •
   <a href="#developer-guide--building-from-source">Developer Guide</a> •
@@ -98,7 +99,35 @@ Once installed, your agent uses [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL
 
 ---
 
-## Examples
+## Showcase Use Cases
+
+Below are real-time demonstrations of `daw-cli` executing agentic workflows in Strata Studio.
+
+### 🎬 Use Case 1: Instant Multi-Track Ingestion, Clip Placement & Auto-Coloring
+
+> **Natural Language Prompt:**  
+> *"Import all the audio files in `/Volumes/AudioDrives/Stems/Song_Session_A/`. Place all clips at the start of the timeline (1.1.0). Clean up all the dirty file extensions and underscores in the track names, and auto-color the tracks based on their instrument types so my session is clean and organized."*
+
+![Use Case 1: Multi-Track Ingestion & Auto-Coloring](asset/usecase-1.gif)
+
+* **Key Commands:** `daw-cli track create`, `daw-cli clip add-audio`, `daw-cli track sanitize-names`, `daw-cli track auto-color`
+* **Impact:** Replaces ~25 minutes of tedious track creation, audio clip positioning, and visual color coding with a single 1-second automated pass.
+
+---
+
+### 🎬 Use Case 2: Multi-Track Session Orchestration & Fader Layout
+
+> **Natural Language Prompt:**  
+> *"Set up a 124 BPM session with an 8-piece drum kit: Kick, Snare Top, Snare Bottom, Hi-Hat, Tom 1, Tom 2, and stereo Overheads. Color them automatically, set all faders to -6 dB for headroom, and pan the overheads 100% left and right."*
+
+![Use Case 2: Multi-Track Session Orchestration & Fader Layout](asset/usecase-2.gif)
+
+* **Key Commands:** `daw-cli transport set-tempo`, `daw-cli track create-batch`, `daw-cli track auto-color`, `daw-cli track set-gain`, `daw-cli track set-pan`
+* **Impact:** Configures an 8-track drum kit session layout with initial gain staging and stereo panning in ~500ms.
+
+---
+
+## Agentic Command Examples
 
 Here is what working in Strata Studio with an AI assistant looks like:
 
