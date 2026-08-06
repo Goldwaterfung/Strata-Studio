@@ -110,7 +110,6 @@ Strata Studio에서 `daw-cli`를 통해 에이전틱 자동화 워크플로우�
 ![유스케이스 1: 멀티트랙 가져오기 및 자동 컬러링](asset/usecase-1.gif)
 
 * **핵심 명령:** `daw-cli track create`, `daw-cli clip add-audio`, `daw-cli track sanitize-names`, `daw-cli track auto-color`
-* **실제 효과:** 트랙 생성, 클립 배치, 색상 정리에 소요되던 ~25분간의 수동 작업을 1초 만에 자동 완료합니다.
 
 ---
 
@@ -122,7 +121,6 @@ Strata Studio에서 `daw-cli`를 통해 에이전틱 자동화 워크플로우�
 ![유스케이스 2: 세션 구성 및 페이더 레이아웃](asset/usecase-2.gif)
 
 * **핵심 명령:** `daw-cli transport set-tempo`, `daw-cli track create-batch`, `daw-cli track auto-color`, `daw-cli track set-gain`, `daw-cli track set-pan`
-* **실제 효과:** 8개 드럼 트랙 세션 레이아웃, 초기 게인 스테이징, 팬 설정을 ~500ms 만에 완료합니다.
 
 ---
 

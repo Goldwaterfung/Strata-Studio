@@ -110,7 +110,6 @@ Strata Studioで `daw-cli` を使用してエージェントワークフロー�
 ![ユースケース 1: マルチトラック取り込みと自動カラーリング](asset/usecase-1.gif)
 
 * **主要コマンド:** `daw-cli track create`, `daw-cli clip add-audio`, `daw-cli track sanitize-names`, `daw-cli track auto-color`
-* **効果:** トラックの作成、クリップの配置、手動でのカラーリングにかかっていた約25分の作業をわずか1秒の自動処理に短縮します。
 
 ---
 
@@ -122,7 +121,6 @@ Strata Studioで `daw-cli` を使用してエージェントワークフロー�
 ![ユースケース 2: セッション構成とフェーダーレイアウト](asset/usecase-2.gif)
 
 * **主要コマンド:** `daw-cli transport set-tempo`, `daw-cli track create-batch`, `daw-cli track auto-color`, `daw-cli track set-gain`, `daw-cli track set-pan`
-* **効果:** 8トラックのドラムキットのレイアウト、ゲインステージング、パン設定を約500ミリ秒で完了します。
 
 ---
 

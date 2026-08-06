@@ -110,7 +110,6 @@ cd Strata-Studio
 ![用例 1：多音轨导入与自动着色](asset/usecase-1.gif)
 
 * **核心命令：** `daw-cli track create`, `daw-cli clip add-audio`, `daw-cli track sanitize-names`, `daw-cli track auto-color`
-* **实际效果：** 将原本需要 ~25 分钟的手动创建轨道、对齐剪辑和配色整理缩短至 1 秒自动完成。
 
 ---
 
@@ -122,7 +121,6 @@ cd Strata-Studio
 ![用例 2：多音轨 Session 编排与推子布局](asset/usecase-2.gif)
 
 * **核心命令：** `daw-cli transport set-tempo`, `daw-cli track create-batch`, `daw-cli track auto-color`, `daw-cli track set-gain`, `daw-cli track set-pan`
-* **实际效果：** 在 ~500 毫秒内一键完成 8 轨鼓组布局、自动配色、增益预留与声相设定。
 
 ---
 

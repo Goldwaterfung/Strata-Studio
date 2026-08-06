@@ -111,7 +111,6 @@ Below are real-time demonstrations of `daw-cli` executing agentic workflows in S
 ![Use Case 1: Multi-Track Ingestion & Auto-Coloring](asset/usecase-1.gif)
 
 * **Key Commands:** `daw-cli track create`, `daw-cli clip add-audio`, `daw-cli track sanitize-names`, `daw-cli track auto-color`
-* **Impact:** Replaces ~25 minutes of tedious track creation, audio clip positioning, and visual color coding with a single 1-second automated pass.
 
 ---
 
@@ -123,7 +122,6 @@ Below are real-time demonstrations of `daw-cli` executing agentic workflows in S
 ![Use Case 2: Multi-Track Session Orchestration & Fader Layout](asset/usecase-2.gif)
 
 * **Key Commands:** `daw-cli transport set-tempo`, `daw-cli track create-batch`, `daw-cli track auto-color`, `daw-cli track set-gain`, `daw-cli track set-pan`
-* **Impact:** Configures an 8-track drum kit session layout with initial gain staging and stereo panning in ~500ms.
 
 ---
 
