@@ -17,6 +17,7 @@
 
 <p align="center">
   <a href="#빠른-시작--에이전트-설정">빠른 시작</a> •
+  <a href="#유스케이스-시연">유스케이스 시연</a> •
   <a href="#strata-studio에서-ai-에이전트가-할-수-있는-일">에이전트 기능</a> •
   <a href="#주요-기능">주요 기능</a> •
   <a href="#개발자-가이드--소스-컴파일">개발자 가이드</a> •
@@ -97,9 +98,37 @@ https://github.com/Goldwaterfung/Strata-Studio 에서 daw-cli 스킬을 설치�
 
 ---
 
-## 사용 예시
+## 유스케이스 시연
 
-Strata Studio에서 AI 어시스턴트와 함께 작업하는 실제 모습입니다:
+Strata Studio에서 `daw-cli`를 통해 에이전틱 자동화 워크플로우를 실행하는 실시간 시연입니다.
+
+### 🎬 유스케이스 1: 멀티트랙 즉시 가져오기, 클립 배치 및 자동 컬러링
+
+> **자연어 프롬프트:**  
+> *"`/Volumes/AudioDrives/Stems/Song_Session_A/` 디렉터리의 모든 오디오 파일을 가져와 줘. 모든 클립을 타임라인 시작 지점(1.1.0)에 배치하고, 트랙 이름의 불필요한 확장자와 언더바를 정리한 뒤, 악기 유형에 따라 자동으로 트랙 색상을 지정해서 세션을 깔끔하게 정돈해 줘."*
+
+![유스케이스 1: 멀티트랙 가져오기 및 자동 컬러링](asset/usecase-1.gif)
+
+* **핵심 명령:** `daw-cli track create`, `daw-cli clip add-audio`, `daw-cli track sanitize-names`, `daw-cli track auto-color`
+* **실제 효과:** 트랙 생성, 클립 배치, 색상 정리에 소요되던 ~25분간의 수동 작업을 1초 만에 자동 완료합니다.
+
+---
+
+### 🎬 유스케이스 2: 멀티트랙 세션 구성 및 페이더 레이아웃
+
+> **자연어 프롬프트:**  
+> *"124 BPM 세션을 설정하고 Kick, Snare Top, Snare Bottom, Hi-Hat, Tom 1, Tom 2 및 스테레오 Overhead 등 8개 드럼 트랙을 구성해 줘. 트랙을 자동으로 색상 분류하고, 헤드룸 확보를 위해 모든 페이더를 -6 dB로 설정한 뒤 Overhead를 각각 좌우 100%로 팬 조절해 줘."*
+
+![유스케이스 2: 세션 구성 및 페이더 레이아웃](asset/usecase-2.gif)
+
+* **핵심 명령:** `daw-cli transport set-tempo`, `daw-cli track create-batch`, `daw-cli track auto-color`, `daw-cli track set-gain`, `daw-cli track set-pan`
+* **실제 효과:** 8개 드럼 트랙 세션 레이아웃, 초기 게인 스테이징, 팬 설정을 ~500ms 만에 완료합니다.
+
+---
+
+## 에이전트 명령 예시
+
+Strata Studio에서 AI 어시스턴트와 함께 작업하는 실제 모습입니다：
 
 ```text
 User    ❯ 템포를 128 BPM으로 설정하고 Kick, Snare, HH, Tom 트랙을 생성한 다음 볼륨 레벨 밸런스를 맞춰 줘.

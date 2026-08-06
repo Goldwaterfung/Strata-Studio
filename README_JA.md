@@ -17,6 +17,7 @@
 
 <p align="center">
   <a href="#クイックスタート--agenticセットアップ">クイックスタート</a> •
+  <a href="#ユースケースの実演">ユースケースの実演</a> •
   <a href="#strata-studio-で-ai-エージェントができること">エージェント機能</a> •
   <a href="#主な機能">主な機能</a> •
   <a href="#開発者ガイド--ソースからのビルド">開発者ガイド</a> •
@@ -97,7 +98,35 @@ https://github.com/Goldwaterfung/Strata-Studio から daw-cli スキルをイン
 
 ---
 
-## 使用例
+## ユースケースの実演
+
+Strata Studioで `daw-cli` を使用してエージェントワークフローを実行するリアルタイムのデモンストレーションです。
+
+### 🎬 ユースケース 1: マルチトラックの即時取り込み、クリップ配置、自動カラーリング
+
+> **自然言語プロンプト:**  
+> *" `/Volumes/AudioDrives/Stems/Song_Session_A/` 内のすべてのオーディオファイルをインポートして。すべてのクリップをタイムラインの開始位置 (1.1.0) に配置し、トラック名から余計な拡張子やアンダースコアをクリーンアップして、楽器タイプに基づいて自動でカラーリングしてセッションを整理して。"*
+
+![ユースケース 1: マルチトラック取り込みと自動カラーリング](asset/usecase-1.gif)
+
+* **主要コマンド:** `daw-cli track create`, `daw-cli clip add-audio`, `daw-cli track sanitize-names`, `daw-cli track auto-color`
+* **効果:** トラックの作成、クリップの配置、手動でのカラーリングにかかっていた約25分の作業をわずか1秒の自動処理に短縮します。
+
+---
+
+### 🎬 ユースケース 2: マルチトラックセッションの構成とフェーダーレイアウト
+
+> **自然言語プロンプト:**  
+> *"124 BPMのセッションを設定し、Kick、Snare Top、Snare Bottom、Hi-Hat、Tom 1、Tom 2、ステレオOverheadの8ピースドラムキットを作成して。自動でカラー分けし、ヘッドルーム確保のためにすべてのフェーダーを -6 dB に設定し、Overheadを左右100%にパンニングして。"*
+
+![ユースケース 2: セッション構成とフェーダーレイアウト](asset/usecase-2.gif)
+
+* **主要コマンド:** `daw-cli transport set-tempo`, `daw-cli track create-batch`, `daw-cli track auto-color`, `daw-cli track set-gain`, `daw-cli track set-pan`
+* **効果:** 8トラックのドラムキットのレイアウト、ゲインステージング、パン設定を約500ミリ秒で完了します。
+
+---
+
+## エージェントコマンドの使用例
 
 Strata StudioでAIアシスタントと共同作業する実際の例です：
 

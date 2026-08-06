@@ -17,6 +17,7 @@
 
 <p align="center">
   <a href="#快速開始--agentic-設定">快速開始</a> •
+  <a href="#展示用例">展示用例</a> •
   <a href="#ai-agent-在-strata-studio-中能為你做些什麼">Agent 功能</a> •
   <a href="#核心特性">核心特性</a> •
   <a href="#開發者指南與原始碼編譯">開發者指南</a> •
@@ -97,7 +98,35 @@ cd Strata-Studio
 
 ---
 
-## 使用範例
+## 展示用例
+
+以下是在 Strata Studio 中由 `daw-cli` 驅動 Agentic 自動化工作流程的實時演示：
+
+### 🎬 用例 1：瞬間多音軌匯入、剪輯放置與自動著色
+
+> **自然語言提示詞：**  
+> *"匯入 `/Volumes/AudioDrives/Stems/Song_Session_A/` 中的所有音訊檔案。將所有剪輯對齊放置在時間線起始位置 (1.1.0)。自動清理軌道名稱中的多餘副檔名與底線，並根據樂器類型自動為軌道著色，讓 Session 保持整潔有序。"*
+
+![用例 1：多音軌匯入與自動著色](asset/usecase-1.gif)
+
+* **核心命令：** `daw-cli track create`, `daw-cli clip add-audio`, `daw-cli track sanitize-names`, `daw-cli track auto-color`
+* **實際效果：** 將原本需要 ~25 分鐘的手動創建軌道、對齊剪輯和配色整理縮短至 1 秒自動完成。
+
+---
+
+### 🎬 用例 2：多音軌 Session 編組編排與推桿佈局
+
+> **自然語言提示詞：**  
+> *"創建一個 124 BPM 的 Session，包含 8 件套鼓組：Kick, Snare Top, Snare Bottom, Hi-Hat, Tom 1, Tom 2, 以及立體聲 Overheads。自動進行顏色分類，將所有推桿音量預設為 -6 dB 留出動態餘量，將 overheads 左右聲道分別推至 100% 極左極右。"*
+
+![用例 2：多音軌 Session 編排與推桿佈局](asset/usecase-2.gif)
+
+* **核心命令：** `daw-cli transport set-tempo`, `daw-cli track create-batch`, `daw-cli track auto-color`, `daw-cli track set-gain`, `daw-cli track set-pan`
+* **實際效果：** 在 ~500 毫秒內一鍵完成 8 軌鼓組佈局、自動配色、增益預留與聲相設定。
+
+---
+
+## Agentic 命令範例
 
 以下是在 Strata Studio 中與 AI 助手協同工作的實際場景：
 

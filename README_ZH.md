@@ -17,6 +17,7 @@
 
 <p align="center">
   <a href="#快速开始--agentic-配置">快速开始</a> •
+  <a href="#展示用例">展示用例</a> •
   <a href="#ai-agent-在-strata-studio-中能为你做些什么">Agent 功能</a> •
   <a href="#核心特性">核心特性</a> •
   <a href="#开发者指南与源码编译">开发者指南</a> •
@@ -97,7 +98,35 @@ cd Strata-Studio
 
 ---
 
-## 使用示例
+## 展示用例
+
+以下是在 Strata Studio 中由 `daw-cli` 驱动 Agentic 自动化工作流的实时演示：
+
+### 🎬 用例 1：瞬间多音轨导入、剪辑放置与自动着色
+
+> **自然语言提示词：**  
+> *"导入 `/Volumes/AudioDrives/Stems/Song_Session_A/` 中的所有音频文件。将所有剪辑对齐放置在时间线起始位置 (1.1.0)。自动清理轨道名称中的多余扩展名与下划线，并根据乐器类型自动为轨道着色，让 Session 保持整洁有序。"*
+
+![用例 1：多音轨导入与自动着色](asset/usecase-1.gif)
+
+* **核心命令：** `daw-cli track create`, `daw-cli clip add-audio`, `daw-cli track sanitize-names`, `daw-cli track auto-color`
+* **实际效果：** 将原本需要 ~25 分钟的手动创建轨道、对齐剪辑和配色整理缩短至 1 秒自动完成。
+
+---
+
+### 🎬 用例 2：多音轨 Session 编组编排与推子布局
+
+> **自然语言提示词：**  
+> *"创建一个 124 BPM 的 Session，包含 8 件套鼓组：Kick, Snare Top, Snare Bottom, Hi-Hat, Tom 1, Tom 2, 以及立体声 Overheads。自动进行颜色分类，将所有推子音量预设为 -6 dB 留出动态余量，并将 overheads 左右声道分别推至 100% 极左极右。"*
+
+![用例 2：多音轨 Session 编排与推子布局](asset/usecase-2.gif)
+
+* **核心命令：** `daw-cli transport set-tempo`, `daw-cli track create-batch`, `daw-cli track auto-color`, `daw-cli track set-gain`, `daw-cli track set-pan`
+* **实际效果：** 在 ~500 毫秒内一键完成 8 轨鼓组布局、自动配色、增益预留与声相设定。
+
+---
+
+## Agentic 命令示例
 
 以下是在 Strata Studio 中与 AI 助手协同工作的实际场景：
 
