@@ -105,7 +105,7 @@ cd Strata-Studio
 ### 🎬 用例 1：瞬间多音轨导入、剪辑放置与自动着色
 
 > **自然语言提示词：**  
-> *"导入 `/Volumes/AudioDrives/Stems/Song_Session_A/` 中的所有音频文件。将所有剪辑对齐放置在时间线起始位置 (1.1.0)。自动清理轨道名称中的多余扩展名与下划线，并根据乐器类型自动为轨道着色，让 Session 保持整洁有序。"*
+> *"导入 `/Volumes/AudioDrives/Stems/Song_Session_A/` 中的所有音频文件。将所有剪辑对齐放置在时间线起始位置。自动清理轨道名称中的多余扩展名与下划线，并根据乐器类型自动为轨道着色，让 Session 保持整洁有序。"*
 
 ![用例 1：多音轨导入与自动着色](asset/usecase-1.gif)
 

@@ -106,7 +106,7 @@ Below are real-time demonstrations of `daw-cli` executing agentic workflows in S
 ### 🎬 Use Case 1: Instant Multi-Track Ingestion, Clip Placement & Auto-Coloring
 
 > **Natural Language Prompt:**  
-> *"Import all the audio files in `/Volumes/AudioDrives/Stems/Song_Session_A/`. Place all clips at the start of the timeline (1.1.0). Clean up all the dirty file extensions and underscores in the track names, and auto-color the tracks based on their instrument types so my session is clean and organized."*
+> *"Import all the audio files in `/Volumes/AudioDrives/Stems/Song_Session_A/`. Place all clips at the start of the timeline. Clean up all the dirty file extensions and underscores in the track names, and auto-color the tracks based on their instrument types so my session is clean and organized."*
 
 ![Use Case 1: Multi-Track Ingestion & Auto-Coloring](asset/usecase-1.gif)
 

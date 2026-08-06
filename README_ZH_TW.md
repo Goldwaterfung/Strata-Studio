@@ -105,7 +105,7 @@ cd Strata-Studio
 ### 🎬 用例 1：瞬間多音軌匯入、剪輯放置與自動著色
 
 > **自然語言提示詞：**  
-> *"匯入 `/Volumes/AudioDrives/Stems/Song_Session_A/` 中的所有音訊檔案。將所有剪輯對齊放置在時間線起始位置 (1.1.0)。自動清理軌道名稱中的多餘副檔名與底線，並根據樂器類型自動為軌道著色，讓 Session 保持整潔有序。"*
+> *"匯入 `/Volumes/AudioDrives/Stems/Song_Session_A/` 中的所有音訊檔案。將所有剪輯對齊放置在時間線起始位置。自動清理軌道名稱中的多餘副檔名與底線，並根據樂器類型自動為軌道著色，讓 Session 保持整潔有序。"*
 
 ![用例 1：多音軌匯入與自動著色](asset/usecase-1.gif)
 
