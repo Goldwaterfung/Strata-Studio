@@ -1,8 +1,22 @@
 # Quick Start Guide
 
-### 1. Install Dependencies
+## 1. Agentic One-Prompt Setup (Recommended)
 
-Simply run the dependency installation script. This will install build tools (via system package manager) and setup **vcpkg** for all libraries.
+Open your AI agent (**Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode**, etc.) and tell it:
+
+```text
+Build and package Strata Studio for me
+```
+
+*(Your agent will automatically execute `./scripts/install_dependencies.sh` and `./scripts/build.sh release --package`).*
+
+---
+
+## 2. Manual Command-Line Setup
+
+### Install Dependencies
+
+Run the dependency installation script to install build tools and bootstrap **vcpkg**:
 
 ```bash
 ./scripts/install_dependencies.sh

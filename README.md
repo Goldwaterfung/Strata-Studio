@@ -2,10 +2,10 @@
 
 # ![Strata](asset/strata.png) Strata Studio
 
-### Give your AI agent hands in your DAW.
+### Strata Studio
 
 <p align="center">
-  <b>A next-generation human-agent collaborative Digital Audio Workstation (DAW).<br>Co-create, mix, edit, and automate music by talking to your favorite AI agent.</b>
+  <b>Get your session mixed, balanced, and organized in seconds.<br>Stop wasting time on tedious DAW setup—tell your AI assistant what you need and stay in your creative flow.</b>
 </p>
 
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](http://creativecommons.org/licenses/by/4.0/)
@@ -19,9 +19,16 @@
   <a href="#quick-start--agentic-install">Quick Start</a> •
   <a href="#examples">Examples</a> •
   <a href="#key-features">Key Features</a> •
-  <a href="#agentic-cli-command-reference-daw-cli">CLI Reference</a> •
   <a href="#architecture--developer-guide">Developer Guide</a> •
   <a href="#license">License</a>
+</p>
+
+<p align="center">
+  <b>Other Languages:</b><br>
+  <a href="README_ZH.md">简体中文</a> •
+  <a href="README_ZH_TW.md">繁體中文</a> •
+  <a href="README_JA.md">日本語</a> •
+  <a href="README_KO.md">한국어</a>
 </p>
 
 </div>
@@ -30,25 +37,31 @@
 
 ## Overview
 
-You opened your DAW to make music, not to spend your time on session setup. **Stop being your DAW's intern.**
+You opened your DAW to create music—not to spend half your studio time balancing track volumes, cleaning up clip noise, or setting up effect chains. **Stop being your DAW's intern.**
 
-**Strata Studio** gives your AI agent hands inside your DAW—letting Claude, Cursor, or Codex handle session prep, plugin chains, and clip cleanup while you stay in the flow state.
+**Strata Studio** lets your AI assistant control your DAW so you can focus purely on making music. Instead of spending 30 minutes manually levelling tracks for streaming, removing background noise from recordings, or routing effect plugins across every track, just tell your AI assistant (**Claude Code**, **Cursor**, **Codex**, **Hermes**, or **Gemini**) what you want in plain English. Your session gets prepped, balanced, and ready for production in seconds.
 
 ---
 
-## Quick Start & Agentic Install
+## Quick Start & Agentic Setup
 
-Strata Studio ships with a pre-packaged agent skill ([`skills/daw-cli/`](skills/daw-cli/)) built on the open [Agent Skills](https://agentskills.io) standard.
+No terminal commands or manual compilation required. Open your AI agent (**Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode**, and 50+ more) and tell it to handle the setup:
 
-### Option 1: One-line prompt install (recommended)
-
-Open your skills-compatible agent — **Claude Code**, **Codex**, **Cursor**, **Hermes**, **Gemini CLI**, **OpenCode**, and 50+ more — and tell it:
+### 1. Install the Skill (Teaches your agent how to control DAW)
+Tell your agent:
 
 ```text
 Install the daw-cli skill from https://github.com/Goldwaterfung/Strata-Studio
 ```
 
-Your agent will discover `skills/daw-cli/SKILL.md` in the repository and copy it into its active skills directory.
+### 2. Build & Setup Strata Studio (Agent compiles the app)
+Tell your agent:
+
+```text
+Build and package Strata Studio for me
+```
+
+*(Your agent will automatically run `./scripts/install_dependencies.sh` and `./scripts/build.sh release --package` under the hood).*
 
 <details>
 <summary><b>Option 2: Manual Skill Directory Setup</b></summary>
@@ -76,12 +89,12 @@ Once installed, your agent uses [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL
 Here is what working in Strata Studio with an AI assistant looks like:
 
 ```text
-User    ❯ Set session tempo to 128 BPM, batch create audio tracks for Kick, Snare, HH, and Tom, and gain-stage them to -18 dB RMS.
+User    ❯ Set tempo to 128 BPM, set up tracks for Kick, Snare, HH, and Tom, and balance their volume levels.
 
 Agent   ❯ [Strata Agentic Engine]
           ✓ Set session tempo to 128.0 BPM (4/4 time signature)
-          ✓ Batch created 4 audio tracks: Kick, Snare, HH, Tom
-          ✓ Normalized & gain-staged clips across tracks 1..4 to target -18.0 dB RMS
+          ✓ Created 4 audio tracks: Kick, Snare, HH, Tom
+          ✓ Balanced volume levels across tracks 1..4 to prevent clipping
           Done. Ready for your arrangement pass.
 ```
 
@@ -101,185 +114,49 @@ Agent   ❯ [Strata Agentic Engine]
 <table width="100%">
   <tr>
     <td width="50%" valign="top">
-      <h3>🤖 Hands-Free Studio Assistant</h3>
-      <p>Offload tedious engineering work—handling repetitive clip edits, multi-bus gain staging, track auto-coloring, and silence trimming via natural language prompts to your AI agent.</p>
+      <h3>🎛️ Perfect Volume & Clean Recordings</h3>
+      <p>Automatically balance track levels so your song is clear, punchy, and ready for streaming—while stripping out background noise, room bleed, and dead silence from your recorded takes.</p>
     </td>
     <td width="50%" valign="top">
-      <h3>🔌 Universal Plugin Support</h3>
-      <p>Host your favorite virtual instruments and audio effects with full support for <b>VST3</b>, <b>Audio Units (AU)</b>, and <b>CLAP</b> plugin formats.</p>
+      <h3>🔌 Instant FX & Plugin Setup</h3>
+      <p>Load your favorite plugins (FabFilter, Waves, iZotope, etc.) and apply your go-to vocal or drum mixing chains across multiple tracks with a single sentence.</p>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <h3>🎛️ Complete Production Suite</h3>
-      <p>Full multitrack audio recording, intuitive Piano Roll MIDI editing, dynamic tempo maps, non-destructive clip comping, and high-quality stem exports.</p>
+      <h3>🎙️ Fast, Idea-First Songwriting</h3>
+      <p>Build your track layout instantly, sequence beats and synth melodies, adjust volume/pan, and edit arrangement clips by talking naturally to your session assistant.</p>
     </td>
     <td width="50%" valign="top">
-      <h3>⚡ Real-Time Engine Performance</h3>
-      <p>Built from the ground up in modern C++20 with a lock-free, zero-allocation DSP execution thread ensuring rock-solid low-latency performance with zero dropouts.</p>
+      <h3>⚡ Smooth, Glitch-Free Studio Performance</h3>
+      <p>Play back and record huge projects with dozens of tracks and heavy plugins with crystal-clear audio—no clicks, pops, or annoying lag.</p>
     </td>
   </tr>
 </table>
-
----
-
-## Agentic CLI Command Reference (`daw-cli`)
-
-Strata Studio features an Agentic IPC daemon and command-line utility (`daw-cli`) designed for AI agents and automated session control.
-
-```bash
-# Executable binary location
-./build/release/src/Agentic\ layer/daw-cli [command] [options]
-```
-
-<details open>
-<summary><b>1. Session State & Transport <code>[Implemented]</code></b></summary>
-<br>
-
-- `daw-cli status` — Returns session state, tempo, time signature, and playhead position.
-- `daw-cli transport play` — Starts transport audio playback.
-- `daw-cli transport stop` — Stops transport audio playback.
-- `daw-cli transport set-tempo --bpm 128.0` — Sets session tempo in BPM.
-- `daw-cli transport set-time-signature --num 4 --den 4` — Sets time signature numerator and denominator.
-</details>
-
-<br>
-
-<details open>
-<summary><b>2. Tracks & Gain-Staging <code>[Implemented]</code></b></summary>
-<br>
-
-- `daw-cli track create --type audio --name "Vocal Lead"` — Creates a new track (`audio`, `midi`, `instrument`, `aux`, `folder`).
-- `daw-cli track create-batch --type audio --names "Kick,Snare,HH,Tom"` — Batch creates multiple tracks simultaneously.
-- `daw-cli track list` — Lists all tracks in the project (TSV tabular output by default).
-- `daw-cli track inspect --track 1` — Inspects detailed settings for a single track.
-- `daw-cli track set-gain --track 1..4 --db -3.5` — Sets track volume gain in dB.
-- `daw-cli track set-pan --track 1 --value -0.25` — Sets track pan position (`-1.0` Left to `+1.0` Right).
-- `daw-cli track set-mute --track 2 --on` — Sets mute state on track(s).
-- `daw-cli track set-solo --track 2 --on` — Sets solo state on track(s).
-- `daw-cli track delete --track 4` — Removes track(s) from the project.
-- `daw-cli track sanitize-names` — Auto-cleans stem filenames across project tracks.
-- `daw-cli track auto-color` — Assigns semantic colors based on instrument family.
-- `daw-cli track set-color --track 1..4 --color red` — Sets track color by semantic name or Hex string.
-- `daw-cli prep gain-stage --track 1..8 --target-rms -18.0` — Gain-stages clips on track(s) to target RMS headroom.
-</details>
-
-<br>
-
-<details open>
-<summary><b>3. VST3 / AU Plugin Host Management <code>[Implemented]</code></b></summary>
-<br>
-
-- `daw-cli plugin scan` — Scans host system for installed VST3/AU plugins.
-- `daw-cli plugin list --head 10 --filter "FabFilter" --category effect` — Lists discovered plugins.
-- `daw-cli plugin add --track 1 --name "FabFilter Pro-Q 3"` — Inserts a plugin into a track slot.
-- `daw-cli plugin set-param --track 1 --plugin 0 --param 3 --val 0.75` — Sets a plugin parameter value (`0.0`..`1.0`).
-- `daw-cli plugin copy --from-track 1 --slot 0 --to-tracks 2..5 --overwrite` — Copies a plugin slot to target track(s).
-- `daw-cli plugin copy-chain --from-track 1 --to-tracks 2..5 --overwrite` — Copies entire 8-slot insert chain to target tracks.
-</details>
-
-<br>
-
-<details open>
-<summary><b>4. Clips & Timeline Editing <code>[Implemented]</code></b></summary>
-<br>
-
-- `daw-cli clip add-audio --track 1 --path "/audio/vocal.wav" --start 1.1.0` — Imports an audio clip onto a track timeline.
-- `daw-cli clip add-midi --track 1 --start 1.1.0 --dur 4.0.0` — Inserts a new MIDI clip region on a track.
-- `daw-cli midi add-note --track 1 --clip 1 --pitch C4 --velocity 100 --start 1.1.0 --dur 1.0.0` — Adds a MIDI note event to a clip.
-- `daw-cli clip list --track 1` — Lists all arrangement clips with start bar, duration, gain, and mute status.
-- `daw-cli clip set-gain --track 1 --clip 1 --db -3.0` — Sets clip region volume gain in dB.
-- `daw-cli clip set-mute --track 1 --clip 1 --on true` — Mutes or unmutes a specific clip.
-- `daw-cli clip split --track 1 --clip 1 --at 2.1.0` — Splits a clip into two regions at position.
-- `daw-cli clip trim-silence --track 1 --clip 1 --threshold -48.0 --fade-ms 5.0` — Trims lead/tail silence on clip.
-- `daw-cli clip quantize --track 1 --clip 1 --grid 1/16 --strength 1.0` — Quantizes notes/clip positions to grid.
-- `daw-cli clip merge --track 1 --start 1.1.0 --end 5.1.0` — Merges adjacent clips across a timeline range.
-- `daw-cli clip move --track 1 --clip 1 --to-pos 3.1.0` — Relocates a clip to a target bar/position.
-- `daw-cli clip nudge --track 1 --clip 1 --by +1/16` — Nudges clip position by grid fraction.
-</details>
 
 ---
 
 ## Architecture & Developer Guide
 
+You talk to your AI agent in plain English. Your agent reads [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md) and translates your intent into IPC actions behind the scenes—releasing you from memorizing terminal commands, syntax, or flags.
+
 <details>
-<summary><b>Engine Architecture (8-Layer Hierarchy)</b></summary>
+<summary><b>IPC Protocol & CLI Command Reference (daw-cli)</b></summary>
 <br>
 
-Strata Studio is engineered in C++20 around a strict **8-layer architecture** to guarantee real-time safety, modular maintainability, and deterministic DSP execution:
+Strata Studio features an Agentic IPC daemon and command-line utility (`daw-cli`) designed for AI agents and automated session control.
 
-- **Real-Time Safe Audio Engine** (Zero heap allocations on DSP audio thread)
-- **Deterministic DSP Graph Topology**
-- **Decoupled 8-Layer Hierarchy**
-- **Agentic IPC & Automation Daemon (`daw-cli`)**
-- **Multi-Format Host Infrastructure**
+For complete CLI command flags, JSON schemas, error codes, and IPC protocol documentation, see [`skills/daw-cli/SKILL.md`](skills/daw-cli/SKILL.md).
 
-<table width="100%">
-  <thead>
-    <tr>
-      <th align="center">Layer</th>
-      <th align="left">Layer Name</th>
-      <th align="left">Key Responsibility</th>
-      <th align="left">Core Directory</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center"><b>Layer 8</b></td>
-      <td><b>Agentic Layer</b></td>
-      <td>CLI Parser (<code>daw-cli</code>), IPC Server Daemon for AI Agents</td>
-      <td><code>src/Agentic layer/</code></td>
-    </tr>
-    <tr>
-      <td align="center"><b>Layer 7</b></td>
-      <td><b>Presentation</b></td>
-      <td>UI Views, Piano Roll, Playlist, Widgets, Settings</td>
-      <td><code>src/Presentation/</code></td>
-    </tr>
-    <tr>
-      <td align="center"><b>Bridge</b></td>
-      <td><b>Middle Bridge</b></td>
-      <td>Decoupled UI & Agent Facade Controllers (<code>namespace bridge</code>)</td>
-      <td><code>src/Middle Bridge/</code></td>
-    </tr>
-    <tr>
-      <td align="center"><b>Layer 6</b></td>
-      <td><b>Media Management</b></td>
-      <td>Library, Waveform Generation, Peak Caching, Codecs</td>
-      <td><code>src/Media management/</code></td>
-    </tr>
-    <tr>
-      <td align="center"><b>Layer 5</b></td>
-      <td><b>Musical Composition</b></td>
-      <td>Arranger, Tracks, MIDI Sequencing, Comping, Tempo Maps</td>
-      <td><code>src/Musical composition/</code></td>
-    </tr>
-    <tr>
-      <td align="center"><b>Layer 4</b></td>
-      <td><b>DSP Processing Nodes</b></td>
-      <td>Zero-allocation Channel Strips, Panners, Time/Pitch</td>
-      <td><code>src/DSP nodes/</code></td>
-    </tr>
-    <tr>
-      <td align="center"><b>Layer 3</b></td>
-      <td><b>Core Audio Engine</b></td>
-      <td>Transport, Scheduler, Audio Streaming, Plugin Hosting</td>
-      <td><code>src/Core audio engine/</code></td>
-    </tr>
-    <tr>
-      <td align="center"><b>Layer 2</b></td>
-      <td><b>Core Infrastructure</b></td>
-      <td>Lock-Free Ring Buffers, State Manager, Telemetry/Mutation Bridges</td>
-      <td><code>src/Core infrastructure/</code></td>
-    </tr>
-    <tr>
-      <td align="center"><b>Layer 1</b></td>
-      <td><b>Hardware/OS Abstraction</b></td>
-      <td>Audio HAL (RtAudio), MIDI HAL (RtMidi), File I/O</td>
-      <td><code>src/Hardware/OS abstraction/</code></td>
-    </tr>
-  </tbody>
-</table>
+</details>
+
+<br>
+
+<details>
+<summary><b>Engine Architecture & 8-Layer Hierarchy</b></summary>
+<br>
+
+Strata Studio is engineered in C++20 around a strict 8-layer architecture to guarantee real-time safety, modular maintainability, and deterministic DSP execution.
 
 </details>
 
