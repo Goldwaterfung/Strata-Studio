@@ -17,6 +17,7 @@ docs/
 agents/
 .claude/
 ARCHITECTURE.md
+CONTEXT.md
 
 # IDE files
 .vscode/

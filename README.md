@@ -16,6 +16,7 @@
 ---
 
 <p align="center">
+  <a href="#why-an-agentic-daw">Why Agentic DAW</a> •
   <a href="#quick-start--agentic-setup">Quick Start</a> •
   <a href="#showcase-use-cases">Showcase Use Cases</a> •
   <a href="#what-your-ai-agent-can-do-in-strata-studio">Agent Capabilities</a> •
@@ -40,7 +41,20 @@
 
 You opened your DAW to create music—not to burn half your brain on shortcuts, modifier keys, and complex control interfaces. **Let tools serve your creativity, not your memory.**
 
-**Strata Studio** lets your AI agent control your DAW so you can focus purely on making music. Instead of spending 30 minutes manually levelling tracks for streaming, removing background noise from recordings, or routing effect plugins across every track, just tell your AI agent (**Claude Code**, **Cursor**, **Codex**, **Hermes**, or **Gemini**) what you want in plain English. Your session gets prepped, balanced, and ready for production in seconds.
+**Strata Studio** is an agentic DAW that your AI agent can natively control so you can focus purely on making music. Instead of spending 30 minutes manually levelling tracks for streaming, removing background noise from recordings, or routing effect plugins across every track, just tell your AI agent (**Claude Code**, **Cursor**, **Codex**, **Hermes**, or **Gemini**) what you want in plain English. Your session gets prepped, balanced, and ready for production in seconds.
+
+---
+
+## Why an Agentic DAW?
+
+Traditional DAWs were built for a keyboard-and-mouse era where every single operation required manual labor. As sessions grow to 100+ tracks, your creative energy gets drained by repetitive mechanical tasks.
+
+| Traditional DAW Workflow | Strata Studio Agentic Workflow |
+| :--- | :--- |
+| **Hundreds of Clicks & Manual Edits**: Manually selecting, gain-staging, color-coding, and routing 100 tracks one-by-one. | **One Single Command**: A single natural language prompt controls 100+ tracks deterministically in a split second. |
+| **The Shortcut Tax**: Searching online for forgotten keyboard shortcuts and complex modifier keys. | **Natural Language**: Just tell your AI agent what you want in plain English. |
+| **Dumb Track Labels**: DAWs treat track names as plain text strings, forcing you to manually group and bus them. | **Semantic Intelligence**: AI agents understand instrument context (`GTR_L_57` → Guitar Bus) and group stems automatically. |
+| **Creative Interruption**: Stopping your flow state to handle technical preferences, gain staging, and file prep. | **Pure Creative Flow**: The AI agent works in the background as your tireless studio assistant. |
 
 ---
 
@@ -174,6 +188,8 @@ Agent   ❯ [Strata Agentic Engine]
     </td>
   </tr>
 </table>
+
+---
 
 ## What Your AI Agent Can Do in Strata Studio
 
