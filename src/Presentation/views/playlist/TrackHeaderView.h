@@ -78,6 +78,7 @@ public:
     void updateMeters(const std::vector<bridge::MeterLevel>& levels); // optional vector overload
     void setVerticalOffset(int offsetPx);
     void clearAll();
+    const std::vector<bridge::TrackUIState>& getTracks() const { return m_tracks; }
 
 signals:
     void trackMuteToggled(TrackID id, bool mute);

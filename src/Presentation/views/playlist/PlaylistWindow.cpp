@@ -881,12 +881,30 @@ void PlaylistWindow::onRenderTick()
     // --- 2. Real-Time Track State Sync ---------------------------------------
     if (m_ctrl.track && m_trackHeader) {
         std::vector<bridge::TrackUIState> tracks = m_ctrl.track->getAllTracks();
-        if (tracks.size() != m_trackCount) {
-            // Structural change (add/remove track) -> Rebuild full view
+        
+        bool structureChanged = (tracks.size() != m_trackCount);
+        if (!structureChanged) {
+            const auto& oldTracks = m_trackHeader->getTracks();
+            if (tracks.size() == oldTracks.size()) {
+                for (size_t i = 0; i < tracks.size(); ++i) {
+                    if (tracks[i].trackId != oldTracks[i].trackId ||
+                        tracks[i].parentFolderId != oldTracks[i].parentFolderId ||
+                        tracks[i].outputTargetTrackId != oldTracks[i].outputTargetTrackId) {
+                        structureChanged = true;
+                        break;
+                    }
+                }
+            } else {
+                structureChanged = true;
+            }
+        }
+
+        if (structureChanged) {
+            // Structural change (add/remove track, routing change) -> Rebuild full view
             reloadTracks();
         } else {
             // Update button/toggle/color/name states in-place
-            m_trackHeader->updateTrackStates(m_ctrl.track->getAllTracks(), m_takesLaneHeights);
+            m_trackHeader->updateTrackStates(tracks, m_takesLaneHeights);
             Q_EMIT trackStatesUpdated(tracks);
         }
     }
