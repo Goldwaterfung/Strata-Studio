@@ -332,6 +332,46 @@
           "successSymbol": "MIDI_NOTE_ADDED"
         }
       }
+    },
+    "route": {
+      "description": "Manages signal routing, submix folders, aux sends, and sidechain connections.",
+      "subcommands": {
+        "folder": {
+          "description": "Routes source track outputs to a destination folder/bus track.",
+          "options": {
+            "--track": { "type": "string", "required": true, "description": "Source track ID or range (e.g. 1..4)" },
+            "--to": { "type": "string", "required": true, "description": "Destination folder/bus track ID" }
+          },
+          "successSymbol": "ROUTE_FOLDER_UPDATED"
+        },
+        "send": {
+          "description": "Configures a pre/post-fader send from source tracks to a target Aux track.",
+          "options": {
+            "--from": { "type": "string", "required": true, "description": "Source track ID or range" },
+            "--to": { "type": "string", "required": true, "description": "Target Aux track ID" },
+            "--db": { "type": "number", "default": -12.0, "description": "Send level gain in dB" },
+            "--tap": { "type": "string", "enum": ["pre", "post"], "default": "post", "description": "Send tap point position" }
+          },
+          "successSymbol": "ROUTE_SEND_ADDED"
+        },
+        "sidechain": {
+          "description": "Links a trigger source track as sidechain input to a target plugin or instrument.",
+          "options": {
+            "--source": { "type": "string", "required": true, "description": "Trigger source track ID or range" },
+            "--to-track": { "type": "string", "required": true, "description": "Target track ID" },
+            "--slot": { "type": "integer", "default": 0, "description": "Target plugin slot index (0..7)" },
+            "--db": { "type": "number", "default": 0.0, "description": "Sidechain gain in dB" }
+          },
+          "successSymbol": "ROUTE_SIDECHAIN_LINKED"
+        },
+        "list": {
+          "description": "Lists signal routing topology across all tracks.",
+          "options": {
+            "--format": { "type": "string", "enum": ["tsv", "kv", "json", "pretty"], "default": "tsv" }
+          },
+          "successSymbol": "ROUTE_LIST"
+        }
+      }
     }
   }
 }

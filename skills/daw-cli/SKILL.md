@@ -3,15 +3,15 @@ name: daw-cli
 description: >-
   Instructs agents to control Strata Studio DAW via the daw-cli command-line
   IPC interface. Covers session state, transport, track management, gain
-  staging, VST3/AU plugin hosting, clips, and MIDI timeline editing. Requires
-  the DAW application to be running.
+  staging, VST3/AU plugin hosting, signal routing, clips, and MIDI timeline editing.
+  Requires the DAW application to be running.
 ---
 
 # Strata Studio DAW CLI Control
 
 ## Overview
 
-`daw-cli` is the command-line IPC client for **Strata Studio DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, and execute clip and MIDI timeline edits in real time.
+`daw-cli` is the command-line IPC client for **Strata Studio DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, configure signal routing & bus topology, and execute clip and MIDI timeline edits in real time.
 
 All commands communicate with the running DAW application using a UNIX domain socket.
 
@@ -374,6 +374,41 @@ daw-cli clip nudge --track 1 --clip 1 --by +1/16
 
 ---
 
+### 6. Signal Routing & Topology (route)
+
+#### Route Tracks to Bus / Folder
+Routes source track outputs to a destination bus or folder track, updating both audio routing and parent folder hierarchy.
+```bash
+daw-cli route folder --track 1..4 --to 10
+```
+- **Success Symbol**: `ROUTE_FOLDER_UPDATED`
+- **Options**: `--track <range>`, `--to <bus_track_id>`
+
+#### Add Aux Send
+Configures a pre-fader or post-fader send from source tracks to a target Aux track with gain level in dB.
+```bash
+daw-cli route send --from 1..4 --to 14 --db -12.0 --tap post
+```
+- **Success Symbol**: `ROUTE_SEND_ADDED`
+- **Options**: `--from <range>`, `--to <aux_track_id>`, `--db <float_dB>` (Default: `-12.0`), `--tap pre|post` (Default: `post`)
+
+#### Set Up Sidechain Connection
+Links a trigger source track as a sidechain input into a target track's plugin or instrument slot.
+```bash
+daw-cli route sidechain --source 1 --to-track 9 --slot 0 --db 0.0
+```
+- **Success Symbol**: `ROUTE_SIDECHAIN_LINKED`
+- **Options**: `--source <track_id>`, `--to-track <track_id>`, `--slot <0..7>` (Default: `0`), `--db <float_dB>` (Default: `0.0`)
+
+#### List Routing Topology
+Lists signal routing connections, main outputs, sends, and sidechains across all tracks.
+```bash
+daw-cli route list [--format tsv|kv|json|pretty]
+```
+- **Success Symbol**: `ROUTE_LIST`
+
+---
+
 ## Common Workflows
 
 ### Workflow A: Setting Up a 4-Track Drum Session
@@ -402,6 +437,21 @@ daw-cli plugin add --track 1 --name "FabFilter Pro-Q 3" --slot 0
 
 # 3. Copy EQ plugin from Track 1 slot 0 to Backing Vocals (Tracks 2..5)
 daw-cli plugin copy --from-track 1 --slot 0 --to-tracks 2..5 --overwrite
+```
+
+### Workflow C: Submix Bus & Sidechain Setup
+```bash
+# 1. Route drum tracks 1..4 into Drums Bus (Track 10)
+daw-cli route folder --track 1..4 --to 10
+
+# 2. Add post-fader send from Snare (Track 2) to Reverb Aux (Track 14) at -12 dB
+daw-cli route send --from 2 --to 14 --db -12.0 --tap post
+
+# 3. Link Kick (Track 1) as sidechain trigger to Synth Bass (Track 9) slot 0
+daw-cli route sidechain --source 1 --to-track 9 --slot 0 --db 0.0
+
+# 4. Inspect session routing topology
+daw-cli route list --format tsv
 ```
 
 ---
