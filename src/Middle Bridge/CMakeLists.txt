@@ -27,6 +27,7 @@ add_library(middle_bridge STATIC
     midi/midi_editor_controller.cpp
     timeline/arrangement_manager_controller.cpp
     engine/render_controller.cpp
+    analysis/analysis_controller.cpp
 )
 
 target_include_directories(middle_bridge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -129,5 +129,190 @@ namespace Analysis {
         return bestKey;
     }
 
+    /**
+     * @brief Result structure for narrow-Q acoustic resonance detection.
+     */
+    struct ResonancePeak {
+        float freqHz = 0.0f;
+        float prominenceDb = 0.0f;
+        float qFactor = 0.0f;
+        std::string notePitch;
+        std::string severity;
+        float recNotchDb = 0.0f;
+    };
+
+    /**
+     * @brief Converts frequency in Hz to musical pitch note string (e.g. 440 Hz -> "A4").
+     */
+    inline std::string freqToPitchNote(float freqHz) {
+        if (freqHz <= 0.0f) return "N/A";
+        static const char* kNoteNames[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+        float midiNoteFloat = 69.0f + 12.0f * std::log2(freqHz / 440.0f);
+        int midiNote = static_cast<int>(std::round(midiNoteFloat));
+        if (midiNote < 0 || midiNote > 127) return "N/A";
+        int noteIdx = (midiNote % 12 + 12) % 12;
+        int octave = (midiNote / 12) - 1;
+        return std::string(kNoteNames[noteIdx]) + std::to_string(octave);
+    }
+
+    /**
+     * @brief Detects narrow-Q acoustic resonances using moving median envelope filter.
+     */
+    inline std::vector<ResonancePeak> detectResonances(const float* magnitude,
+                                                       uint32_t fftSize,
+                                                       float sampleRate,
+                                                       float prominenceThresholdDb = 6.0f,
+                                                       float minQFactor = 8.0f) {
+        std::vector<ResonancePeak> resonances;
+        if (!magnitude || fftSize == 0 || sampleRate <= 0.0f) return resonances;
+
+        const uint32_t numBins = fftSize / 2 + 1;
+        const float binWidth = sampleRate / static_cast<float>(fftSize);
+
+        // Convert magnitude spectrum to dBFS
+        std::vector<float> magDb(numBins);
+        for (uint32_t i = 0; i < numBins; ++i) {
+            magDb[i] = 20.0f * std::log10(magnitude[i] + 1e-9f);
+        }
+
+        // Spectral envelope extraction via moving median (window = 31 bins)
+        constexpr int kHalfWindow = 15;
+        std::vector<float> envelopeDb(numBins);
+        std::vector<float> windowBuffer;
+        windowBuffer.reserve(2 * kHalfWindow + 1);
+
+        for (uint32_t i = 0; i < numBins; ++i) {
+            windowBuffer.clear();
+            int start = std::max(0, static_cast<int>(i) - kHalfWindow);
+            int end = std::min(static_cast<int>(numBins) - 1, static_cast<int>(i) + kHalfWindow);
+            for (int j = start; j <= end; ++j) {
+                windowBuffer.push_back(magDb[static_cast<size_t>(j)]);
+            }
+            std::sort(windowBuffer.begin(), windowBuffer.end());
+            envelopeDb[i] = windowBuffer[windowBuffer.size() / 2];
+        }
+
+        // Search local peaks with prominence >= prominenceThresholdDb
+        for (uint32_t i = 2; i < numBins - 2; ++i) {
+            if (magDb[i] > magDb[i - 1] && magDb[i] > magDb[i + 1]) {
+                float prominence = magDb[i] - envelopeDb[i];
+                if (prominence >= prominenceThresholdDb) {
+                    float peakFreq = i * binWidth;
+
+                    // Find -3dB bandwidth around peak
+                    float targetLevel = magDb[i] - 3.0f;
+                    size_t leftBin = static_cast<size_t>(i);
+                    while (leftBin > 0 && magDb[leftBin] > targetLevel) {
+                        --leftBin;
+                    }
+                    size_t rightBin = static_cast<size_t>(i);
+                    while (rightBin < (numBins - 1) && magDb[rightBin] > targetLevel) {
+                        ++rightBin;
+                    }
+
+                    float bandwidthHz = std::max(static_cast<float>(rightBin - leftBin) * binWidth, binWidth);
+                    float qFactor = peakFreq / bandwidthHz;
+
+                    if (qFactor >= minQFactor) {
+                        ResonancePeak peak{};
+                        peak.freqHz = peakFreq;
+                        peak.prominenceDb = prominence;
+                        peak.qFactor = qFactor;
+                        peak.notePitch = freqToPitchNote(peakFreq);
+
+                        if (prominence >= 12.0f && qFactor >= 15.0f) {
+                            peak.severity = "CRITICAL";
+                            peak.recNotchDb = -6.0f;
+                        } else if (prominence >= 10.0f && qFactor >= 12.0f) {
+                            peak.severity = "HIGH";
+                            peak.recNotchDb = -4.5f;
+                        } else if (prominence >= 8.0f && qFactor >= 10.0f) {
+                            peak.severity = "MODERATE";
+                            peak.recNotchDb = -3.0f;
+                        } else {
+                            peak.severity = "LOW";
+                            peak.recNotchDb = -1.5f;
+                        }
+
+                        resonances.push_back(peak);
+                    }
+                }
+            }
+        }
+
+        return resonances;
+    }
+
+    /**
+     * @brief Result structure for Multi-Track Pairwise Phase Correlation Matrix.
+     */
+    struct PhaseMatrixResult {
+        uint32_t trackCount = 0;
+        std::vector<float> flatMatrix; // N x N values
+        std::string globalHealth;
+        uint32_t worstPairTrackA = 0;
+        uint32_t worstPairTrackB = 0;
+        float worstCorrelation = 1.0f;
+        std::string recommendedAction;
+    };
+
+    /**
+     * @brief Computes N x N pairwise phase correlation matrix across N audio buffers.
+     */
+    inline PhaseMatrixResult calculatePhaseCorrelationMatrix(const float* const* buffers,
+                                                              uint32_t trackCount,
+                                                              uint32_t sampleCount) {
+        PhaseMatrixResult res{};
+        res.trackCount = trackCount;
+        if (!buffers || trackCount == 0 || sampleCount == 0) {
+            res.globalHealth = "HEALTHY_NO_CANCELLATION";
+            return res;
+        }
+
+        res.flatMatrix.assign(trackCount * trackCount, 1.0f);
+        float minCorr = 1.0f;
+        uint32_t worstA = 0;
+        uint32_t worstB = 0;
+
+        for (uint32_t i = 0; i < trackCount; ++i) {
+            for (uint32_t j = i; j < trackCount; ++j) {
+                float corr = 1.0f;
+                if (i != j) {
+                    if (buffers[i] && buffers[j]) {
+                        corr = calculateCorrelation(buffers[i], buffers[j], sampleCount);
+                    } else {
+                        corr = 0.0f;
+                    }
+                }
+                res.flatMatrix[i * trackCount + j] = corr;
+                res.flatMatrix[j * trackCount + i] = corr;
+
+                if (i != j && corr < minCorr) {
+                    minCorr = corr;
+                    worstA = i;
+                    worstB = j;
+                }
+            }
+        }
+
+        res.worstPairTrackA = worstA;
+        res.worstPairTrackB = worstB;
+        res.worstCorrelation = minCorr;
+
+        if (minCorr < -0.5f) {
+            res.globalHealth = "WARNING_SEVERE_CANCELLATION";
+            res.recommendedAction = "FLIP_POLARITY_TRACK_" + std::to_string(worstB + 1);
+        } else if (minCorr < -0.2f) {
+            res.globalHealth = "WARNING_MODERATE_CANCELLATION";
+            res.recommendedAction = "NUDGE_DELAY_TRACK_" + std::to_string(worstB + 1) + "_PLUS_1.0MS";
+        } else {
+            res.globalHealth = "HEALTHY_NO_CANCELLATION";
+            res.recommendedAction = "NONE";
+        }
+
+        return res;
+    }
+
 } // namespace Analysis
 } // namespace Math
+

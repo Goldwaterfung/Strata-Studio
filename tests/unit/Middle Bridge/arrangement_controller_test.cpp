@@ -201,7 +201,15 @@ public:
         return allTrackIds;
     }
 
-    bool getTrackInfo(TrackID /*id*/, TrackCreateInfo& /*outInfo*/) const override { return false; }
+    bool getTrackInfo(TrackID id, TrackCreateInfo& outInfo) const override {
+        auto it = std::find_if(allTrackIds.begin(), allTrackIds.end(), [&](const TrackID& t) { return t.id == id.id; });
+        if (it != allTrackIds.end()) {
+            outInfo.nameId = 1;
+            outInfo.colorARGB = 0xFF112233;
+            return true;
+        }
+        return false;
+    }
     uint32_t getTrackIndexPosition(TrackID /*id*/) const override { return 0; }
     TrackID getTrackParentFolderId(TrackID /*id*/) const override { return {0, 0}; }
 
@@ -345,7 +353,10 @@ public:
 class MockProjectSession : public composition::IProjectSession {
 public:
     explicit MockProjectSession(composition::ITrackManager* tm, composition::IAudioRegionSourceManager* sm)
-        : trackManager(tm), sourceManager(sm) {}
+        : trackManager(tm), sourceManager(sm) {
+        metadata.sampleRate = 44100;
+        metadata.initialTempoBPM = 120.0f;
+    }
 
     composition::ITrackManager* getTrackManager() override { return trackManager; }
     composition::IArrangementManager* getArrangementManager() override { return nullptr; }

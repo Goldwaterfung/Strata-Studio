@@ -16,6 +16,7 @@ add_executable(middle_bridge_unit_tests
     session_management_test.cpp
     midi_editor_controller_test.cpp
     track_bridge_sidechain_test.cpp
+    analysis_controller_test.cpp
 )
 
 target_include_directories(middle_bridge_unit_tests PRIVATE
