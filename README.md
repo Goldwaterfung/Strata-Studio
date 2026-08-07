@@ -233,6 +233,8 @@ Instead of manually clicking through complex menus, searching for shortcuts, or 
       <p>Set session tempo (BPM), adjust time signatures, control playback transport (play, stop, seek playhead), and organize track colors and names on the fly.</p>
     </td>
     <td width="50%" valign="top">
+      <h3>🔬 Non-Visual DSP Analysis & Audio Intelligence</h3>
+      <p>Detect Bark-scale frequency masking & collisions between tracks, detect narrow-Q resonances with musical pitch notes, compute Pearson phase correlation matrices, align multi-mic phase, and stream real-time LUFS and True-Peak telemetry.</p>
     </td>
   </tr>
 </table>
@@ -244,6 +246,7 @@ Instead of manually clicking through complex menus, searching for shortcuts, or 
 * **Plugin Management**: Insert VST3/AU plugins, tweak normalized parameters, copy plugin chains from one track to another.
 * **Timeline & MIDI Editing**: Place audio clips, set start offsets & durations, program MIDI notes, transpose melodies.
 * **Bus Submixing & Auxiliary FX Routing**: Redirect track outputs to folder group buses, configure pre/post auxiliary FX sends, link plugin sidechain compression triggers.
+* **Non-Visual DSP Analysis & Audio Intelligence**: Audit Bark-scale frequency masking, detect resonant peaks, evaluate multi-track phase correlation matrices & sample-accurate offsets, stream live LUFS/dBTP telemetry, inspect 7-band spectral energy, and audit stereo width & mono compatibility.
 
 ---
 
@@ -367,7 +370,7 @@ Run the setup script to install dependencies and libraries (RtAudio, RtMidi, lib
 - [x] **VST3 / AU Plugin Host Management** (`plugin`) - Fully Implemented
 - [x] **Clips & Timeline Editing** (`clip`, `midi`) - Fully Implemented
 - [x] **Bus Submixing & Auxiliary FX Routing** (`route`) - Fully Implemented
-- [ ] **Non-Visual DSP Analysis & Audio Intelligence** (`analyze`) - *In Progress*
+- [x] **Non-Visual DSP Analysis & Audio Intelligence** (`analyze`) - Fully Implemented
 - [ ] **Stem Exports & Asynchronous Render Jobs** (`export`, `job`) - *In Progress*
 
 ---
