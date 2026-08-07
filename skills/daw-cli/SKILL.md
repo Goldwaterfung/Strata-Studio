@@ -3,7 +3,8 @@ name: daw-cli
 description: >-
   Instructs agents to control Strata Studio DAW via the daw-cli command-line
   IPC interface. Covers session state, transport, track management, gain
-  staging, VST3/AU plugin hosting, signal routing, clips, and MIDI timeline editing.
+  staging, VST3/AU plugin hosting, signal routing, clips, MIDI timeline editing,
+  and non-visual DSP analysis & audio intelligence.
   Requires the DAW application to be running.
 ---
 
@@ -11,7 +12,7 @@ description: >-
 
 ## Overview
 
-`daw-cli` is the command-line IPC client for **Strata Studio DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, configure signal routing & bus topology, and execute clip and MIDI timeline edits in real time.
+`daw-cli` is the command-line IPC client for **Strata Studio DAW**, allowing AI agents and automation tools to query and mutate session state, manage tracks, perform gain-staging, host VST3/AU/CLAP plugins, configure signal routing & bus topology, execute clip and MIDI timeline edits, and perform non-visual DSP analysis & audio intelligence in real time.
 
 All commands communicate with the running DAW application using a UNIX domain socket.
 
@@ -409,6 +410,91 @@ daw-cli route list [--format tsv|kv|json|pretty]
 
 ---
 
+### 7. Non-Visual DSP Analysis & Audio Intelligence (analyze)
+
+#### Frequency Masking & Collision Detection
+Calculates psychoacoustic masking overlap and energy density collisions across 24 critical Bark bands between two tracks.
+```bash
+daw-cli analyze masking --track 1 --vs 2
+```
+- **Success Symbol**: `MASKING_ANALYSIS_COMPLETED`
+- **Options**: `--track <uint32>`, `--vs <uint32>`
+- **Output Fields**: `PRIMARY_TRACK`, `VS_TRACK`, `OVERALL_MASKING_INDEX`, `COLLISION_RISK`, `MASKED_BAND_COUNT`, `BAND_1_RANGE_HZ`, `BAND_1_MASK_AMOUNT_DB`, `BAND_1_ACTION`, ...
+
+#### Narrow-Q Resonance Peak Detection
+Scans track audio spectrum with a moving median filter to locate harsh narrow-Q resonances, pitch note mappings, and Q-factor sharpness.
+```bash
+daw-cli analyze resonance --track 1
+```
+- **Success Symbol**: `RESONANCE_ANALYSIS_COMPLETED`
+- **Options**: `--track <uint32>`
+- **Output Fields**: `TRACK_ID`, `TOTAL_RESONANCES_FOUND`, `RESONANCE_1_FREQ_HZ`, `RESONANCE_1_NOTE`, `RESONANCE_1_PROMINENCE_DB`, `RESONANCE_1_Q_FACTOR`, `RESONANCE_1_SEVERITY`, `RESONANCE_1_REC_NOTCH_DB`
+
+#### Multi-Track Pearson Phase Correlation Matrix
+Computes N x N pairwise Pearson correlation coefficients across a list or range of tracks to flag phase cancellation risks.
+```bash
+daw-cli analyze phase-matrix --track 1..4
+```
+- **Success Symbol**: `PHASE_MATRIX_COMPLETED`
+- **Options**: `--track <range>`
+- **Output Fields**: `TRACKS_ANALYZED`, `GLOBAL_GROUP_HEALTH`, `WORST_PAIR_1`, `WORST_CORRELATION_1`, `REC_ACTION_1`, `CORRELATION_MATRIX_FLAT`
+
+#### Cross-Correlation Phase Alignment
+Calculates cross-correlation lag between two signals to recommend sample-accurate and millisecond time offsets.
+```bash
+daw-cli analyze phase-align --track 1 --vs 2
+```
+- **Success Symbol**: `PHASE_ALIGN_COMPLETED`
+- **Options**: `--track <uint32>`, `--vs <uint32>`
+- **Output Fields**: `PRIMARY_TRACK`, `VS_TRACK`, `RECOMMENDED_SAMPLE_OFFSET`, `RECOMMENDED_TIME_OFFSET_MS`, `CURRENT_CORRELATION`, `IMPROVED_CORRELATION`, `RECOMMENDED_ACTION`
+
+#### Live Real-Time Telemetry Stream Snapshot
+Queries zero-allocation real-time telemetry array for live momentary/short-term LUFS, true-peak dBTP, crest factor, and safety status.
+```bash
+daw-cli analyze live --track 1 [--window-ms 400]
+```
+- **Success Symbol**: `LIVE_TELEMETRY_SNAPSHOT`
+- **Options**: `--track <uint32>`, `--window-ms <uint32>` (Default: `400`)
+- **Output Fields**: `TRACK_ID`, `WINDOW_DURATION_MS`, `MOMENTARY_LUFS`, `SHORT_TERM_LUFS`, `SAMPLE_PEAK_DBFS`, `TRUE_PEAK_DBTP`, `IS_CLIPPING`, `CLIPPING_EVENTS_COUNT`, `CREST_FACTOR_DB`, `SPECTRAL_CENTROID_HZ`, `STEREO_CORRELATION`, `SAFETY_STATUS`, `REC_GAIN_TRIM_DB`
+
+#### 7-Band Spectral Energy Balance
+Evaluates spectral distribution across Sub, Bass, Low-Mid, Mid, High-Mid, Highs, and Air bands alongside spectral centroid and tilt.
+```bash
+daw-cli analyze spectrum --track 1
+```
+- **Success Symbol**: `SPECTRUM_ANALYSIS_COMPLETED`
+- **Options**: `--track <uint32>`
+- **Output Fields**: `TRACK_ID`, `SPECTRAL_CENTROID_HZ`, `SPECTRAL_TILT_DB_OCT`, `SPECTRAL_ROLLOFF_HZ`, `SUB_BAND_DBFS`, `BASS_BAND_DBFS`, `LOW_MID_BAND_DBFS`, `MID_BAND_DBFS`, `HIGH_MID_BAND_DBFS`, `HIGHS_BAND_DBFS`, `AIR_BAND_DBFS`
+
+#### EBU R128 Loudness Audit
+Measures integrated LUFS, loudness range (LRA), short-term/momentary peak LUFS, and crest factor.
+```bash
+daw-cli analyze loudness --track 1
+```
+- **Success Symbol**: `LOUDNESS_ANALYSIS_COMPLETED`
+- **Options**: `--track <uint32>`
+- **Output Fields**: `TRACK_ID`, `INTEGRATED_LUFS`, `SHORT_TERM_MAX_LUFS`, `MOMENTARY_MAX_LUFS`, `LRA_LU`, `CREST_FACTOR_DB`, `SAMPLE_PEAK_DBFS`, `TRUE_PEAK_DBTP`
+
+#### True-Peak Inter-Sample Clipping Audit
+Performs 4x oversampled true-peak analysis to detect inter-sample clipping events and safety margin status.
+```bash
+daw-cli analyze true-peak --track 1
+```
+- **Success Symbol**: `TRUE_PEAK_ANALYSIS_COMPLETED`
+- **Options**: `--track <uint32>`
+- **Output Fields**: `TRACK_ID`, `MAX_TRUE_PEAK_DBTP`, `TOTAL_CLIPPING_EVENTS`, `SAFETY_STATUS`
+
+#### Mid/Side Stereo Width Audit
+Measures Mid RMS, Side RMS, Mid-to-Side ratio in dB, stereo width percentage, and estimated mono fold-down signal loss.
+```bash
+daw-cli analyze stereo-width --track 1
+```
+- **Success Symbol**: `STEREO_WIDTH_ANALYSIS_COMPLETED`
+- **Options**: `--track <uint32>`
+- **Output Fields**: `TRACK_ID`, `MID_RMS_DBFS`, `SIDE_RMS_DBFS`, `MS_RATIO_DB`, `STEREO_WIDTH_PCT`, `MONO_FOLD_LOSS_DB`
+
+---
+
 ## Common Workflows
 
 ### Workflow A: Setting Up a 4-Track Drum Session
@@ -454,6 +540,21 @@ daw-cli route sidechain --source 1 --to-track 9 --slot 0 --db 0.0
 daw-cli route list --format tsv
 ```
 
+### Workflow D: Acoustic Guitar & Vocal Masking Audit and Resonant Notch Fix
+```bash
+# 1. Analyze frequency masking between Vocal (Track 1) and Acoustic Guitar (Track 2)
+daw-cli analyze masking --track 1 --vs 2
+
+# 2. Detect harsh resonant peaks and Q-factors on Acoustic Guitar
+daw-cli analyze resonance --track 2
+
+# 3. Evaluate multi-mic phase alignment between Top Snare (Track 3) and Bottom Snare (Track 4)
+daw-cli analyze phase-align --track 3 --vs 4
+
+# 4. Snapshot real-time LUFS & True-Peak telemetry on Master Output (Track 10)
+daw-cli analyze live --track 10 --window-ms 400
+```
+
 ---
 
 ## Common Mistakes
@@ -466,3 +567,6 @@ daw-cli route list --format tsv
 
 3. **Not Checking `status` Before Issuing Commands**:
    Attempting to execute commands when Strata Studio is closed returns error `71 DAW_NOT_RUNNING`. Always run `daw-cli status` first to confirm connectivity.
+
+4. **Missing Comparison Target for Pairwise Analysis**:
+   Commands like `daw-cli analyze masking` and `daw-cli analyze phase-align` require `--vs <target_track_id>`. Omitting `--vs` returns error `70 INVALID_ARGS`.
