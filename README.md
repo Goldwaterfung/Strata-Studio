@@ -139,6 +139,17 @@ Below are real-time demonstrations of `daw-cli` executing agentic workflows in S
 
 ---
 
+### 🎬 Use Case 3: Selective Stem Ingestion, Synth Plugin Instantiation & Submix Routing
+
+> **Natural Language Prompt:**  
+> *"Inspect the stems in `/Users/goldenfung/Documents/Pro Tools/Projects/Perfect Fish - Mixing/Perfect Fish - Session/Bounced Files/stems` and my installed plugin library. Set up a professional Synth Rock mix for me. Import only the drum and guitar stems, instantiate Serum 2 for 'Sub Bass' and 'Synth Bass'. Construct a professional submix group setup."*
+
+![Use Case 3: Selective Stem Ingestion, Synth Plugin Instantiation & Submix Routing](asset/usecase-3.gif)
+
+* **Key Commands:** `daw-cli plugin scan`, `daw-cli plugin add`, `daw-cli route folder`, `daw-cli prep gain-stage`
+
+---
+
 ## Agentic Command Examples
 
 Here is what working in Strata Studio with an AI assistant looks like:
@@ -212,8 +223,16 @@ Instead of manually clicking through complex menus, searching for shortcuts, or 
       <p>Sequence drum patterns, create synth lead MIDI clips, transpose note pitch, arrange audio clips on the timeline, and slice takes using simple conversational prompts.</p>
     </td>
     <td width="50%" valign="top">
+      <h3>🔀 Bus Submixing & Auxiliary FX Routing</h3>
+      <p>Group tracks into folder submix buses, configure pre/post fader auxiliary sends, and set up dynamic sidechain compression triggers across plugin chains.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
       <h3>⏱️ Playback Transport & Session Control</h3>
       <p>Set session tempo (BPM), adjust time signatures, control playback transport (play, stop, seek playhead), and organize track colors and names on the fly.</p>
+    </td>
+    <td width="50%" valign="top">
     </td>
   </tr>
 </table>
@@ -224,6 +243,7 @@ Instead of manually clicking through complex menus, searching for shortcuts, or 
 * **Track Setup & Leveling**: Add audio/instrument tracks, set track volume & pan, mute/solo tracks, run automatic gain staging.
 * **Plugin Management**: Insert VST3/AU plugins, tweak normalized parameters, copy plugin chains from one track to another.
 * **Timeline & MIDI Editing**: Place audio clips, set start offsets & durations, program MIDI notes, transpose melodies.
+* **Bus Submixing & Auxiliary FX Routing**: Redirect track outputs to folder group buses, configure pre/post auxiliary FX sends, link plugin sidechain compression triggers.
 
 ---
 
@@ -346,7 +366,7 @@ Run the setup script to install dependencies and libraries (RtAudio, RtMidi, lib
 - [x] **Tracks & Gain-Staging** (`track`, `prep`) - Fully Implemented
 - [x] **VST3 / AU Plugin Host Management** (`plugin`) - Fully Implemented
 - [x] **Clips & Timeline Editing** (`clip`, `midi`) - Fully Implemented
-- [ ] **Bus Submixing & Auxiliary FX Routing** (`route`) - *In Progress*
+- [x] **Bus Submixing & Auxiliary FX Routing** (`route`) - Fully Implemented
 - [ ] **Non-Visual DSP Analysis & Audio Intelligence** (`analyze`) - *In Progress*
 - [ ] **Stem Exports & Asynchronous Render Jobs** (`export`, `job`) - *In Progress*
 
