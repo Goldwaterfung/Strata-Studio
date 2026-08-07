@@ -141,7 +141,7 @@ cd Strata-Studio
 ### 🎬 用例 3：選擇性 Stem 匯入、合成器外掛掛載與子混音總線路由
 
 > **自然語言提示詞：**  
-> *"檢查 `/Users/goldenfung/Documents/Pro Tools/Projects/Perfect Fish - Mixing/Perfect Fish - Session/Bounced Files/stems` 中的 stems 以及我已安裝的外掛庫。幫我搭建一個專業的 Synth Rock 混音工程。僅匯入鼓組與吉他 stems，為 'Sub Bass' 與 'Synth Bass' 掛載 Serum 2 外掛，並構建專業的子混音總線編組。"*
+> *"檢查 `/Volumes/AudioDrives/Stems/Song_Session_A/stems` 中的 stems 以及我已安裝的外掛庫。幫我搭建一個專業的 Synth Rock 混音工程。僅匯入鼓組與吉他 stems，為 'Sub Bass' 與 'Synth Bass' 掛載 Serum 2 外掛，並構建專業的子混音總線編組。"*
 
 ![用例 3：選擇性 Stem 匯入、合成器外掛掛載與子混音總線路由](asset/usecase-3.gif)
 

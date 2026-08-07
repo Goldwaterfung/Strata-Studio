@@ -141,7 +141,7 @@ Strata Studio에서 `daw-cli`를 통해 에이전틱 자동화 워크플로우�
 ### 🎬 유스케이스 3: 선택적 스템 가져오기, 신디사이저 플러그인 할당 및 서브믹스 라우팅
 
 > **자연어 프롬프트:**  
-> *"`/Users/goldenfung/Documents/Pro Tools/Projects/Perfect Fish - Mixing/Perfect Fish - Session/Bounced Files/stems` 디렉터리의 스템과 설치된 플러그인 라이브러리를 확인해 줘. 전문적인 Synth Rock 믹스 세션을 구성해 줘. 드럼과 기타 스템만 가져오고, 'Sub Bass'와 'Synth Bass'에 Serum 2를 적용한 뒤, 전문적인 서브믹스 그룹을 구성해 줘."*
+> *"`/Volumes/AudioDrives/Stems/Song_Session_A/stems` 디렉터리의 스템과 설치된 플러그인 라이브러리를 확인해 줘. 전문적인 Synth Rock 믹스 세션을 구성해 줘. 드럼과 기타 스템만 가져오고, 'Sub Bass'와 'Synth Bass'에 Serum 2를 적용한 뒤, 전문적인 서브믹스 그룹을 구성해 줘."*
 
 ![유스케이스 3: 선택적 스템 가져오기, 신디사이저 플러그인 할당 및 서브믹스 라우팅](asset/usecase-3.gif)
 

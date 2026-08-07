@@ -142,7 +142,7 @@ Below are real-time demonstrations of `daw-cli` executing agentic workflows in S
 ### 🎬 Use Case 3: Selective Stem Ingestion, Synth Plugin Instantiation & Submix Routing
 
 > **Natural Language Prompt:**  
-> *"Inspect the stems in `/Users/goldenfung/Documents/Pro Tools/Projects/Perfect Fish - Mixing/Perfect Fish - Session/Bounced Files/stems` and my installed plugin library. Set up a professional Synth Rock mix for me. Import only the drum and guitar stems, instantiate Serum 2 for 'Sub Bass' and 'Synth Bass'. Construct a professional submix group setup."*
+> *"Inspect the stems in `/Volumes/AudioDrives/Stems/Song_Session_A/stems` and my installed plugin library. Set up a professional Synth Rock mix for me. Import only the drum and guitar stems, instantiate Serum 2 for 'Sub Bass' and 'Synth Bass'. Construct a professional submix group setup."*
 
 ![Use Case 3: Selective Stem Ingestion, Synth Plugin Instantiation & Submix Routing](asset/usecase-3.gif)
 

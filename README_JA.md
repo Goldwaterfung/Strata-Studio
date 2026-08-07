@@ -141,7 +141,7 @@ Strata Studioで `daw-cli` を使用してエージェントワークフロー�
 ### 🎬 ユースケース 3: 選択的ステム取り込み、シンセプラグイン挿入、サブミックスルーティング
 
 > **自然言語プロンプト:**  
-> *" `/Users/goldenfung/Documents/Pro Tools/Projects/Perfect Fish - Mixing/Perfect Fish - Session/Bounced Files/stems` 内のステムとインストール済みプラグインライブラリを確認して。プロ仕様のSynth Rockミックスをセットアップして。ドラムとギターのステムのみをインポートし、'Sub Bass'と'Synth Bass'にSerum 2を挿入し、プロ仕様のサブミックスグループを構成して。"*
+> *" `/Volumes/AudioDrives/Stems/Song_Session_A/stems` 内のステムとインストール済みプラグインライブラリを確認して。プロ仕様のSynth Rockミックスをセットアップして。ドラムとギターのステムのみをインポートし、'Sub Bass'と'Synth Bass'にSerum 2を挿入し、プロ仕様のサブミックスグループを構成して。"*
 
 ![ユースケース 3: 選択的ステム取り込み、シンセプラグイン挿入、サブミックスルーティング](asset/usecase-3.gif)
 
