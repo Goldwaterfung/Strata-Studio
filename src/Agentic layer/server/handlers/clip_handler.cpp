@@ -216,53 +216,61 @@ ExecutionResult ClipHandler::handleCommand(
         // ── MIDI Add Note Handler ───────────────────────────────────────────
         if (verb == "midi" && sub == "add-note") {
             if (!midiEditorController) {
-                return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "MIDI editor controller interface unavailable.");
+                return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "MIDI editor controller interface unavailable.");
             }
 
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view clipStr = args.getOption("--clip", "0");
-            std::string_view pitchStr = args.getOption("--pitch", "");
-            std::string_view velStr = args.getOption("--velocity", "");
-            std::string_view chanStr = args.getOption("--channel", "0");
-            std::string_view startStr = args.getOption("--start", "");
-            std::string_view durStr = args.getOption("--dur", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view clipStr = args.getOption("--clip");
+            std::string_view pitchStr = args.getOption("--pitch");
+            std::string_view velStr = args.getOption("--velocity");
+            std::string_view chanStr = args.getOption("--channel");
+            std::string_view startStr = args.getOption("--start");
+            std::string_view durStr = args.getOption("--dur");
 
-            if (trackStr.empty() || pitchStr.empty() || velStr.empty() || startStr.empty() || durStr.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS",
-                    "Missing required arguments for midi add-note (--track, --pitch, --velocity, --start, --dur).");
+            if (trackStr.empty() || clipStr.empty() || pitchStr.empty() || velStr.empty() || chanStr.empty() || startStr.empty() || durStr.empty()) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS,
+                    "Missing required arguments for midi add-note (--track, --clip, --pitch, --velocity, --channel, --start, --dur).");
             }
 
-            uint32_t trackId = static_cast<uint32_t>(std::stoul(std::string(trackStr)));
-            uint32_t clipId = static_cast<uint32_t>(std::stoul(std::string(clipStr)));
+            auto trackOpt = ParsedArgs::parseUint32(trackStr);
+            auto clipOpt = ParsedArgs::parseUint32(clipStr);
+            auto velOpt = ParsedArgs::parseUint32(velStr);
+            auto chanOpt = ParsedArgs::parseUint32(chanStr);
+            if (!trackOpt || !clipOpt || !velOpt || !chanOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for midi add-note arguments.");
+            }
+
+            uint32_t trackId = *trackOpt;
+            uint32_t clipId = *clipOpt;
             
             uint8_t pitch = 0;
             std::string formattedPitch;
             std::string pitchErr;
             if (!parseMusicalPitch(pitchStr, pitch, formattedPitch, pitchErr)) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", pitchErr);
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, pitchErr);
             }
 
-            uint8_t vel = static_cast<uint8_t>(std::stoul(std::string(velStr)));
-            uint8_t chan = static_cast<uint8_t>(std::stoul(std::string(chanStr)));
+            uint8_t vel = static_cast<uint8_t>(*velOpt);
+            uint8_t chan = static_cast<uint8_t>(*chanOpt);
 
             if (!midiEditorController->openClip(TrackID{trackId, 0}, composition::RegionID{clipId, 0})) {
-                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                     "Target MIDI clip ID " + std::string(clipStr) + " not found on Track " + std::string(trackStr));
             }
 
             if (!timelineController || timelineController->getSampleRate() <= 0.0) {
-                return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "Timeline sample rate unavailable.");
+                return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "Timeline sample rate unavailable.");
             }
             uint64_t startFrame = parsePositionToFrames(startStr, timelineController);
             uint64_t durFrames = parseDurationToFrames(durStr, timelineController);
             if (durFrames == 0) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid or zero note duration.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid or zero note duration.");
             }
             uint64_t endFrame = startFrame + durFrames;
 
             bridge::NoteID nid = midiEditorController->addNote(pitch, vel, chan, startFrame, endFrame);
             if (nid.id == 0 || nid.id == UINT32_MAX) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Failed to add MIDI note.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Failed to add MIDI note.");
             }
 
             return ExecutionResult::Success("MIDI_NOTE_ADDED", {
@@ -279,34 +287,38 @@ ExecutionResult ClipHandler::handleCommand(
 
         // All remaining subcommands require arrangementController
         if (!arrangementController) {
-            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "Arrangement controller interface unavailable.");
+            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "Arrangement controller interface unavailable.");
         }
 
         // ── Clip Add Audio ──────────────────────────────────────────────────
         if (sub == "add-audio") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view path = args.getOption("--path", "");
-            std::string_view start = args.getOption("--start", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view path = args.getOption("--path");
+            std::string_view start = args.getOption("--start");
 
             if (trackStr.empty() || path.empty() || start.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS",
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS,
                     "Missing required arguments for clip add-audio (--track, --path, --start).");
             }
 
             std::filesystem::path fsPath(path);
             if (!std::filesystem::exists(fsPath)) {
-                return ExecutionResult::Error(ErrorCode::ASSET_I_O_ERROR, "ASSET_I_O_ERROR",
+                return ExecutionResult::Error(ErrorCode::ASSET_I_O_ERROR,
                     "Audio asset file path does not exist on filesystem: " + std::string(path));
             }
 
-            uint32_t trackId = static_cast<uint32_t>(std::stoul(std::string(trackStr)));
+            auto trackOpt = ParsedArgs::parseUint32(trackStr);
+            if (!trackOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --track.");
+            }
+            uint32_t trackId = *trackOpt;
             uint64_t startFrame = parsePositionToFrames(start, timelineController);
 
             composition::RegionID rid = arrangementController->importAudioClip(
                 TrackID{trackId, 0}, std::string(path).c_str(), startFrame);
 
             if (!rid.isValid()) {
-                return ExecutionResult::Error(ErrorCode::ASSET_I_O_ERROR, "ASSET_I_O_ERROR",
+                return ExecutionResult::Error(ErrorCode::ASSET_I_O_ERROR,
                     "Failed to import audio clip asset at path: " + std::string(path));
             }
 
@@ -320,27 +332,31 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip Add MIDI ───────────────────────────────────────────────────
         if (sub == "add-midi") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view start = args.getOption("--start", "");
-            std::string_view durStr = args.getOption("--dur", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view start = args.getOption("--start");
+            std::string_view durStr = args.getOption("--dur");
 
             if (trackStr.empty() || start.empty() || durStr.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS",
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS,
                     "Missing required arguments for clip add-midi (--track, --start, --dur).");
             }
 
-            uint32_t trackId = static_cast<uint32_t>(std::stoul(std::string(trackStr)));
+            auto trackOpt = ParsedArgs::parseUint32(trackStr);
+            if (!trackOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --track.");
+            }
+            uint32_t trackId = *trackOpt;
             uint64_t startFrame = parsePositionToFrames(start, timelineController);
             uint64_t durFrames = parseDurationToFrames(durStr, timelineController);
             if (durFrames == 0) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid or zero clip duration.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid or zero clip duration.");
             }
 
             composition::RegionID rid = arrangementController->insertMidiClip(
                 TrackID{trackId, 0}, startFrame, durFrames);
 
             if (!rid.isValid()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Failed to insert MIDI clip on track.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Failed to insert MIDI clip on track.");
             }
 
             return ExecutionResult::Success("MIDI_CLIP_ADDED", {
@@ -353,18 +369,22 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip Split ──────────────────────────────────────────────────────
         if (sub == "split") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view clipStr = args.getOption("--clip", "");
-            std::string_view atStr = args.getOption("--at", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view clipStr = args.getOption("--clip");
+            std::string_view atStr = args.getOption("--at");
 
             if (trackStr.empty() || clipStr.empty() || atStr.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Missing required --track, --clip, or --at argument.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track, --clip, or --at argument.");
             }
 
-            uint32_t clipId = static_cast<uint32_t>(std::stoul(std::string(clipStr)));
+            auto clipOpt = ParsedArgs::parseUint32(clipStr);
+            if (!clipOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --clip.");
+            }
+            uint32_t clipId = *clipOpt;
             bridge::VisualRegion vreg{};
             if (!arrangementController->getVisualRegion(composition::RegionID{clipId, 0}, vreg)) {
-                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                     "Target clip ID " + std::string(clipStr) + " not found on timeline.");
             }
 
@@ -380,28 +400,36 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip Trim Silence ───────────────────────────────────────────────
         if (sub == "trim-silence") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view clipStr = args.getOption("--clip", "");
-            std::string_view thresh = args.getOption("--threshold", "");
-            std::string_view fadeStr = args.getOption("--fade-ms", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view clipStr = args.getOption("--clip");
+            std::string_view thresh = args.getOption("--threshold");
+            std::string_view fadeStr = args.getOption("--fade-ms");
 
             if (trackStr.empty() || clipStr.empty() || thresh.empty() || fadeStr.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS",
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS,
                     "Missing required arguments for clip trim-silence (--track, --clip, --threshold, --fade-ms).");
             }
 
-            uint32_t clipId = static_cast<uint32_t>(std::stoul(std::string(clipStr)));
+            auto clipOpt = ParsedArgs::parseUint32(clipStr);
+            if (!clipOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --clip.");
+            }
+            uint32_t clipId = *clipOpt;
             bridge::VisualRegion vreg{};
             if (!arrangementController->getVisualRegion(composition::RegionID{clipId, 0}, vreg)) {
-                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                     "Target clip ID " + std::string(clipStr) + " not found on timeline.");
             }
 
             if (!timelineController || timelineController->getSampleRate() <= 0.0) {
-                return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "Timeline sample rate unavailable.");
+                return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "Timeline sample rate unavailable.");
             }
             double sampleRate = timelineController->getSampleRate();
-            double fadeMs = std::stod(std::string(fadeStr));
+            auto fadeOpt = ParsedArgs::parseFloat(fadeStr);
+            if (!fadeOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --fade-ms.");
+            }
+            double fadeMs = static_cast<double>(*fadeOpt);
 
             uint32_t fadeFrames = static_cast<uint32_t>((fadeMs / 1000.0) * sampleRate);
             arrangementController->setRegionFades(composition::RegionID{clipId, 0}, fadeFrames, fadeFrames);
@@ -416,31 +444,40 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip / MIDI Quantize ────────────────────────────────────────────
         if (sub == "quantize") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view clipStr = args.getOption("--clip", "0");
-            std::string_view gridStr = args.getOption("--grid", "");
-            std::string_view strengthStr = args.getOption("--strength", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view clipStr = args.getOption("--clip");
+            std::string_view gridStr = args.getOption("--grid");
+            std::string_view strengthStr = args.getOption("--strength");
 
-            if (trackStr.empty() || gridStr.empty() || strengthStr.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS",
-                    "Missing required arguments for clip quantize (--track, --grid, --strength).");
+            if (trackStr.empty() || clipStr.empty() || gridStr.empty() || strengthStr.empty()) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS,
+                    "Missing required arguments for clip quantize (--track, --clip, --grid, --strength).");
             }
 
-            uint32_t trackId = static_cast<uint32_t>(std::stoul(std::string(trackStr)));
-            uint32_t clipId = static_cast<uint32_t>(std::stoul(std::string(clipStr)));
+            auto trackOpt = ParsedArgs::parseUint32(trackStr);
+            auto clipOpt = ParsedArgs::parseUint32(clipStr);
+            if (!trackOpt || !clipOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --track or --clip.");
+            }
+            uint32_t trackId = *trackOpt;
+            uint32_t clipId = *clipOpt;
 
             if (clipId > 0) {
                 bridge::VisualRegion vreg{};
                 if (!arrangementController->getVisualRegion(composition::RegionID{clipId, 0}, vreg)) {
-                    return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+                    return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                         "Target clip ID " + std::string(clipStr) + " not found on timeline.");
                 }
             }
 
-            float strength = static_cast<float>(std::stof(std::string(strengthStr)));
+            auto strengthOpt = ParsedArgs::parseFloat(strengthStr);
+            if (!strengthOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --strength.");
+            }
+            float strength = *strengthOpt;
             uint16_t gridTicks = parseGridToTicks(gridStr, timelineController);
             if (gridTicks == 0) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid or unsupported --grid parameter.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid or unsupported --grid parameter.");
             }
 
             if (midiEditorController && midiEditorController->openClip(TrackID{trackId, 0}, composition::RegionID{clipId, 0})) {
@@ -462,17 +499,21 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip Merge ──────────────────────────────────────────────────────
         if (sub == "merge") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view clips = args.getOption("--clips", "");
-            std::string_view startStr = args.getOption("--start", "");
-            std::string_view endStr = args.getOption("--end", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view clips = args.getOption("--clips");
+            std::string_view startStr = args.getOption("--start");
+            std::string_view endStr = args.getOption("--end");
 
             if (trackStr.empty() || (startStr.empty() && endStr.empty() && clips.empty())) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS",
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS,
                     "Missing required arguments for clip merge (--track and --start/--end or --clips).");
             }
 
-            uint32_t trackId = static_cast<uint32_t>(std::stoul(std::string(trackStr)));
+            auto trackOpt = ParsedArgs::parseUint32(trackStr);
+            if (!trackOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --track.");
+            }
+            uint32_t trackId = *trackOpt;
             uint64_t startFrame = parsePositionToFrames(startStr, timelineController);
             uint64_t endFrame = parsePositionToFrames(endStr, timelineController);
 
@@ -508,22 +549,27 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip Move ───────────────────────────────────────────────────────
         if (sub == "move") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view clipStr = args.getOption("--clip", "");
-            std::string_view toPos = args.getOption("--to-pos", "");
-            if (trackStr.empty() || clipStr.empty() || toPos.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Missing required --track, --clip, or --to-pos argument.");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view clipStr = args.getOption("--clip");
+            std::string_view toPos = args.getOption("--to-pos");
+            std::string_view destTrackStr = args.getOption("--to-track");
+            if (trackStr.empty() || clipStr.empty() || toPos.empty() || destTrackStr.empty()) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track, --clip, --to-pos, or --to-track argument.");
             }
 
-            uint32_t clipId = static_cast<uint32_t>(std::stoul(std::string(clipStr)));
+            auto clipOpt = ParsedArgs::parseUint32(clipStr);
+            auto destTrackOpt = ParsedArgs::parseUint32(destTrackStr);
+            if (!clipOpt || !destTrackOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --clip or --to-track.");
+            }
+            uint32_t clipId = *clipOpt;
             bridge::VisualRegion vreg{};
             if (!arrangementController->getVisualRegion(composition::RegionID{clipId, 0}, vreg)) {
-                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                     "Target clip ID " + std::string(clipStr) + " not found on timeline.");
             }
 
-            std::string_view destTrackStr = args.getOption("--to-track", trackStr);
-            uint32_t destTrackId = static_cast<uint32_t>(std::stoul(std::string(destTrackStr)));
+            uint32_t destTrackId = *destTrackOpt;
             int64_t newStartFrame = static_cast<int64_t>(parsePositionToFrames(toPos, timelineController));
 
             composition::RegionID rid = arrangementController->moveRegion(
@@ -539,30 +585,35 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip Nudge ──────────────────────────────────────────────────────
         if (sub == "nudge") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view clipStr = args.getOption("--clip", "");
-            std::string_view byStr = args.getOption("--by", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view clipStr = args.getOption("--clip");
+            std::string_view byStr = args.getOption("--by");
             if (trackStr.empty() || clipStr.empty() || byStr.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS",
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS,
                     "Missing required arguments for clip nudge (--track, --clip, --by).");
             }
 
-            uint32_t clipId = static_cast<uint32_t>(std::stoul(std::string(clipStr)));
-            uint32_t trackId = static_cast<uint32_t>(std::stoul(std::string(trackStr)));
+            auto clipOpt = ParsedArgs::parseUint32(clipStr);
+            auto trackOpt = ParsedArgs::parseUint32(trackStr);
+            if (!clipOpt || !trackOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --clip or --track.");
+            }
+            uint32_t clipId = *clipOpt;
+            uint32_t trackId = *trackOpt;
 
             bridge::VisualRegion vreg{};
             if (!arrangementController->getVisualRegion(composition::RegionID{clipId, 0}, vreg)) {
-                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                     "Target clip ID " + std::string(clipStr) + " not found on timeline.");
             }
 
             if (!timelineController) {
-                return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "Timeline controller unavailable.");
+                return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "Timeline controller unavailable.");
             }
             std::string_view cleanBy = (byStr.starts_with('+') || byStr.starts_with('-')) ? byStr.substr(1) : byStr;
             uint16_t ticks = parseGridToTicks(cleanBy, timelineController);
             if (ticks == 0) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid or unsupported --by grid fraction.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid or unsupported --by grid fraction.");
             }
             uint64_t deltaFrames = timelineController->ticksToSamples(ticks);
             int64_t newFrame = byStr.starts_with('-') ?
@@ -581,21 +632,29 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip Set Gain ───────────────────────────────────────────────────
         if (sub == "set-gain") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view clipStr = args.getOption("--clip", "");
-            std::string_view dbStr = args.getOption("--db", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view clipStr = args.getOption("--clip");
+            std::string_view dbStr = args.getOption("--db");
             if (trackStr.empty() || clipStr.empty() || dbStr.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Missing required --track, --clip, or --db argument.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track, --clip, or --db argument.");
             }
 
-            uint32_t clipId = static_cast<uint32_t>(std::stoul(std::string(clipStr)));
+            auto clipOpt = ParsedArgs::parseUint32(clipStr);
+            if (!clipOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --clip.");
+            }
+            uint32_t clipId = *clipOpt;
             bridge::VisualRegion vreg{};
             if (!arrangementController->getVisualRegion(composition::RegionID{clipId, 0}, vreg)) {
-                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                     "Target clip ID " + std::string(clipStr) + " not found on timeline.");
             }
 
-            float dbVal = static_cast<float>(std::stof(std::string(dbStr)));
+            auto dbOpt = ParsedArgs::parseFloat(dbStr);
+            if (!dbOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --db.");
+            }
+            float dbVal = *dbOpt;
             float gainLinear = std::pow(10.0f, dbVal / 20.0f);
             arrangementController->setRegionGain(composition::RegionID{clipId, 0}, gainLinear);
 
@@ -608,18 +667,22 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip Set Mute ───────────────────────────────────────────────────
         if (sub == "set-mute") {
-            std::string_view trackStr = args.getOption("--track", "");
-            std::string_view clipStr = args.getOption("--clip", "");
-            std::string_view onStr = args.getOption("--on", "");
+            std::string_view trackStr = args.getOption("--track");
+            std::string_view clipStr = args.getOption("--clip");
+            std::string_view onStr = args.getOption("--on");
             if (trackStr.empty() || clipStr.empty() || onStr.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS",
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS,
                     "Missing required arguments for clip set-mute (--track, --clip, --on).");
             }
 
-            uint32_t clipId = static_cast<uint32_t>(std::stoul(std::string(clipStr)));
+            auto clipOpt = ParsedArgs::parseUint32(clipStr);
+            if (!clipOpt) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --clip.");
+            }
+            uint32_t clipId = *clipOpt;
             bridge::VisualRegion vreg{};
             if (!arrangementController->getVisualRegion(composition::RegionID{clipId, 0}, vreg)) {
-                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                     "Target clip ID " + std::string(clipStr) + " not found on timeline.");
             }
 
@@ -635,11 +698,11 @@ ExecutionResult ClipHandler::handleCommand(
 
         // ── Clip List ───────────────────────────────────────────────────────
         if (sub == "list") {
-            std::string_view trackStr = args.getOption("--track", "");
+            std::string_view trackStr = args.getOption("--track");
             if (trackStr.empty()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Missing required --track argument.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track argument.");
             }
-            std::string_view barRangeStr = args.getOption("--bar", "");
+            std::string_view barRangeStr = args.getOption("--bar");
             std::vector<std::map<std::string, std::string>> clipRows;
 
             uint64_t searchStartFrame = 0;
@@ -660,10 +723,8 @@ ExecutionResult ClipHandler::handleCommand(
             std::vector<bridge::VisualRegion> regions(maxClips);
             uint32_t count = arrangementController->getRegionsInViewport(searchStartFrame, searchEndFrame, regions.data(), maxClips);
 
-            uint32_t filterTrack = 0;
-            if (!trackStr.empty()) {
-                filterTrack = static_cast<uint32_t>(std::stoul(std::string(trackStr)));
-            }
+            auto filterTrackOpt = ParsedArgs::parseUint32(trackStr);
+            uint32_t filterTrack = filterTrackOpt.value_or(0);
 
             for (uint32_t i = 0; i < count; ++i) {
                 const auto& r = regions[i];
@@ -698,12 +759,12 @@ ExecutionResult ClipHandler::handleCommand(
         }
 
     } catch (const std::exception& e) {
-        return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", std::string("Argument processing exception: ") + e.what());
+        return ExecutionResult::Error(ErrorCode::INVALID_ARGS, std::string("Argument processing exception: ") + e.what());
     } catch (...) {
-        return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Unknown exception during command execution.");
+        return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Unknown exception during command execution.");
     }
 
-    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Unknown clip/midi subcommand.");
+    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Unknown clip/midi subcommand.");
 }
 
 } // namespace agentic

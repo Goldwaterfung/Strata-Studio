@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <array>
 
+#include <vector>
+
 namespace DSP {
 
 /**
@@ -64,21 +66,31 @@ inline void accumulateBlockTelemetry(const float* const* channelBuffers,
 }
 
 /**
- * @brief 400ms pre-allocated circular ring buffer for live momentary LUFS computation.
+ * @brief Dynamically sized, pre-allocated circular ring buffer for live momentary LUFS computation.
+ * Pre-allocated on Non-RT initialization via prepare(). Zero-allocation during RT processing.
  */
-template <uint32_t Capacity = 19200>
 class SlidingWindowLoudnessBuffer {
 public:
-    SlidingWindowLoudnessBuffer() { reset(); }
+    SlidingWindowLoudnessBuffer() {
+        prepare(48000.0f, 400.0f);
+    }
+
+    void prepare(float sampleRate, float windowMs = 400.0f) {
+        uint32_t capacity = static_cast<uint32_t>(std::max(1.0f, sampleRate * (windowMs / 1000.0f)));
+        m_buffer.assign(capacity, 0.0f);
+        m_capacity = capacity;
+        m_writeIdx = 0;
+        m_sumSq = 0.0f;
+    }
 
     void reset() {
-        m_buffer.fill(0.0f);
+        std::fill(m_buffer.begin(), m_buffer.end(), 0.0f);
         m_writeIdx = 0;
         m_sumSq = 0.0f;
     }
 
     void pushBlock(const float* data, uint32_t numSamples) {
-        if (!data || numSamples == 0) return;
+        if (!data || numSamples == 0 || m_capacity == 0) return;
         for (uint32_t i = 0; i < numSamples; ++i) {
             float sample = data[i];
             float oldSample = m_buffer[m_writeIdx];
@@ -87,12 +99,13 @@ public:
 
             m_buffer[m_writeIdx] = sample;
             m_sumSq += sample * sample;
-            m_writeIdx = (m_writeIdx + 1) % Capacity;
+            m_writeIdx = (m_writeIdx + 1) % m_capacity;
         }
     }
 
     float getMomentaryLufs() const {
-        float meanSq = m_sumSq / static_cast<float>(Capacity);
+        if (m_capacity == 0) return -120.0f;
+        float meanSq = m_sumSq / static_cast<float>(m_capacity);
         float rms = std::sqrt(meanSq);
         // EBU R128 momentary loudness approximation from K-weighted energy
         float lufs = 20.0f * std::log10(rms + 1e-9f) - 0.691f;
@@ -100,7 +113,8 @@ public:
     }
 
 private:
-    std::array<float, Capacity> m_buffer;
+    std::vector<float> m_buffer;
+    uint32_t m_capacity = 0;
     uint32_t m_writeIdx = 0;
     float m_sumSq = 0.0f;
 };

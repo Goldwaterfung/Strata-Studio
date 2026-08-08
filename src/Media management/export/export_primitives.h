@@ -64,6 +64,9 @@ struct ExportConfig {
     uint32_t albumId;
     uint32_t genreId;
     uint32_t commentId;
+
+    // Track Isolation
+    uint32_t isolateTrackId;
 };
 
 static_assert(std::is_pod<ExportConfig>::value, "ExportConfig must be Plain Old Data");

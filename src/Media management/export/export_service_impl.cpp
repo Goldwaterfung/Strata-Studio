@@ -3,6 +3,8 @@
 #include "Media management/codecs/sndfile_writer.h"
 #include "Core audio engine/scheduler/idsp_kernel.h"
 #include "Core infrastructure/memory/istring_registry.h"
+#include "common/math/primitives.h"
+#include "common/dsp/dsp_constants.h"
 #include <ebur128.h>
 #include <mutex>
 #include <thread>
@@ -55,6 +57,7 @@ public:
                                          uint64_t endSample,
                                          uint32_t sampleRate,
                                          uint16_t numChannels,
+                                         uint32_t isolateTrackId,
                                          AnalysisCallback callback,
                                          void* context) override {
         std::unique_lock lock(mutex_);
@@ -70,6 +73,7 @@ public:
         config.endSample = endSample;
         config.sampleRate = sampleRate;
         config.numChannels = numChannels;
+        config.isolateTrackId = isolateTrackId;
         
         jobs_[jobId] = { config, nullptr, callback, context, progress, {} };
         jobQueue_.push(jobId);
@@ -96,6 +100,67 @@ public:
             return true;
         }
         return false;
+    }
+
+    bool renderTrackToBufferSync(uint32_t trackId,
+                                uint64_t startSample,
+                                uint64_t endSample,
+                                uint32_t sampleRate,
+                                std::vector<float>& outMonoBuffer) override {
+        if (!kernel_ || startSample >= endSample || sampleRate == 0) return false;
+
+        uint64_t totalFrames = endSample - startSample;
+        outMonoBuffer.resize(totalFrames, 0.0f);
+
+        uint16_t numChannels = 2;
+        std::vector<float> outputData(DSP::Constants::kDefaultAnalysisBlockSize * numChannels);
+        std::vector<float*> outputPlanes(numChannels);
+        for (uint32_t c = 0; c < numChannels; ++c) {
+            outputPlanes[c] = &outputData[c * DSP::Constants::kDefaultAnalysisBlockSize];
+        }
+
+        ProcessContext context{};
+        context.sampleRate = static_cast<float>(sampleRate);
+        context.isOffline = true;
+        context.maxBlockSize = DSP::Constants::kDefaultAnalysisBlockSize;
+        context.isolateNodeId = (trackId > 0) ? NodeID{trackId, 0} : NodeID::invalid();
+        context.transportState = TransportState::PLAYING;
+        context.timelineSnapshot = kernel_->getActiveTimelineSnapshot();
+        context.midiClipDataProvider = midiProvider_;
+
+        // Pre-roll / Flush Latency
+        uint32_t totalLatency = kernel_->getTotalLatency();
+        if (totalLatency > 0) {
+            uint32_t remainingPreRoll = totalLatency;
+            while (remainingPreRoll > 0) {
+                uint32_t framesToProcess = std::min(remainingPreRoll, DSP::Constants::kDefaultAnalysisBlockSize);
+                int64_t preRollPos = static_cast<int64_t>(startSample) - static_cast<int64_t>(remainingPreRoll);
+                context.transport.positionSample = static_cast<uint64_t>(preRollPos);
+                context.currentBlockSize = framesToProcess;
+
+                kernel_->process(nullptr, outputPlanes.data(), numChannels, framesToProcess, &context);
+                remainingPreRoll -= framesToProcess;
+            }
+        }
+
+        uint64_t processedFrames = 0;
+        while (processedFrames < totalFrames) {
+            uint32_t toProcess = static_cast<uint32_t>(std::min(static_cast<uint64_t>(DSP::Constants::kDefaultAnalysisBlockSize), totalFrames - processedFrames));
+            context.currentBlockSize = toProcess;
+            context.transport.positionSample = startSample + processedFrames;
+
+            kernel_->process(nullptr, outputPlanes.data(), numChannels, toProcess, &context);
+
+            for (uint32_t f = 0; f < toProcess; ++f) {
+                float mono = (numChannels > 1) ? ((outputPlanes[0][f] + outputPlanes[1][f]) * Math::Constants::INV_SQRT2)
+                                               : outputPlanes[0][f];
+                outMonoBuffer[processedFrames + f] = mono;
+            }
+
+            processedFrames += toProcess;
+        }
+
+        return true;
     }
 
     void update() override {
@@ -240,7 +305,7 @@ private:
         context.sampleRate = static_cast<float>(job.config.sampleRate);
         context.isOffline = true;
         context.maxBlockSize = 1024;
-        context.isolateNodeId = NodeID::invalid();
+        context.isolateNodeId = (job.config.isolateTrackId > 0) ? NodeID{job.config.isolateTrackId, 0} : NodeID::invalid();
         context.transportState = TransportState::PLAYING;
         context.timelineSnapshot = kernel_->getActiveTimelineSnapshot();
         context.midiClipDataProvider = midiProvider_;
@@ -261,29 +326,57 @@ private:
         }
 
         bool clippingDetected = false;
+        double sumL2 = 0.0;
+        double sumR2 = 0.0;
+        double sumLR = 0.0;
+        double sumM2 = 0.0;
+        double sumS2 = 0.0;
+        float maxSamplePeak = 0.0f;
+        uint64_t totalEvaluatedSamples = 0;
 
         while (processedFrames < totalFrames && job.progress->status == ExportStatus::PROCESSING) {
             std::atomic_thread_fence(std::memory_order_acquire);
-            uint32_t toProcess = static_cast<uint32_t>(std::min(static_cast<uint64_t>(1024), totalFrames - processedFrames));
+            uint32_t toProcess = static_cast<uint32_t>(std::min(static_cast<uint64_t>(DSP::Constants::kDefaultAnalysisBlockSize), totalFrames - processedFrames));
             context.currentBlockSize = toProcess;
             context.transport.positionSample = job.config.startSample + processedFrames;
 
             kernel_->process(nullptr, outputPlanes.data(), job.config.numChannels, toProcess, &context);
 
-            // Interleave and check clipping/peak levels
+            // Interleave and check clipping/peak/stereo width levels
             for (uint32_t f = 0; f < toProcess; ++f) {
+                float left = outputPlanes[0][f];
+                float right = (job.config.numChannels > 1) ? outputPlanes[1][f] : left;
+
+                float absL = std::abs(left);
+                float absR = std::abs(right);
+                if (absL > maxSamplePeak) maxSamplePeak = absL;
+                if (absR > maxSamplePeak) maxSamplePeak = absR;
+                if (absL > 1.0f || absR > 1.0f) {
+                    clippingDetected = true;
+                }
+
+                float mid = (left + right) * Math::Constants::INV_SQRT2;
+                float side = (left - right) * Math::Constants::INV_SQRT2;
+
+                double dLeft = static_cast<double>(left);
+                double dRight = static_cast<double>(right);
+                double dMid = static_cast<double>(mid);
+                double dSide = static_cast<double>(side);
+
+                sumL2 += dLeft * dLeft;
+                sumR2 += dRight * dRight;
+                sumLR += dLeft * dRight;
+                sumM2 += dMid * dMid;
+                sumS2 += dSide * dSide;
+
                 for (uint32_t c = 0; c < job.config.numChannels; ++c) {
-                    float val = outputPlanes[c][f];
-                    float absVal = std::abs(val);
-                    if (absVal > 1.0f) {
-                        clippingDetected = true;
-                    }
-                    interleaved[f * job.config.numChannels + c] = val;
+                    interleaved[f * job.config.numChannels + c] = outputPlanes[c][f];
                 }
             }
 
             ebur128_add_frames_float(ebustate, interleaved.data(), toProcess);
             processedFrames += toProcess;
+            totalEvaluatedSamples += toProcess;
             job.progress->progress = static_cast<float>(processedFrames) / (totalFrames > 0 ? totalFrames : 1);
         }
 
@@ -304,6 +397,27 @@ private:
             job.analysisResult.integratedLoudnessLUFS = static_cast<float>(integrated);
             job.analysisResult.truePeakDBTP = static_cast<float>(truePeak);
             job.analysisResult.clippingDetected = clippingDetected;
+
+            if (totalEvaluatedSamples > 0) {
+                double rmsM = std::sqrt(sumM2 / static_cast<double>(totalEvaluatedSamples));
+                double rmsS = std::sqrt(sumS2 / static_cast<double>(totalEvaluatedSamples));
+                double rmsStereo = std::sqrt((sumL2 + sumR2) / (2.0 * static_cast<double>(totalEvaluatedSamples)));
+
+                double dMidDbfs = 20.0 * std::log10(std::max(rmsM, 1e-6));
+                double dSideDbfs = 20.0 * std::log10(std::max(rmsS, 1e-6));
+                double dStereoDbfs = 20.0 * std::log10(std::max(rmsStereo, 1e-6));
+
+                job.analysisResult.midRmsDbfs = static_cast<float>(dMidDbfs);
+                job.analysisResult.sideRmsDbfs = static_cast<float>(dSideDbfs);
+                job.analysisResult.msRatioDb = static_cast<float>(dMidDbfs - dSideDbfs);
+                job.analysisResult.stereoWidthPct = static_cast<float>((rmsS / (rmsM + rmsS + 1e-9)) * 100.0);
+                job.analysisResult.monoFoldLossDb = static_cast<float>(dStereoDbfs - dMidDbfs);
+
+                double denomLR = std::sqrt(sumL2 * sumR2);
+                job.analysisResult.stereoCorrelation = (denomLR > 1e-9) ? static_cast<float>(sumLR / denomLR) : 1.0f;
+                double dMaxPeak = static_cast<double>(maxSamplePeak);
+                job.analysisResult.samplePeakDBFS = (maxSamplePeak > 1e-6f) ? static_cast<float>(20.0 * std::log10(dMaxPeak)) : DSP::Constants::kSilenceFloorDbfs;
+            }
 
             job.progress->status = ExportStatus::COMPLETED;
             job.progress->progress = 1.0f;

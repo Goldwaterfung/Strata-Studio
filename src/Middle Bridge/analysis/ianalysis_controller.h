@@ -44,11 +44,12 @@ struct PhaseMatrixAnalysisResult {
     std::vector<float> flatMatrix;
 };
 
-struct LiveTelemetryAnalysisResult {
+struct WindowTelemetryAnalysisResult {
     bool success = false;
     std::string errorMessage;
     uint32_t trackId = 0;
-    uint32_t windowMs = 400;
+    std::string startPos;
+    std::string durPos;
     DSP::RealtimeTelemetryState telemetry;
     std::string safetyStatus;
     float recGainTrimDb = 0.0f;
@@ -125,7 +126,7 @@ public:
     virtual MaskingAnalysisResult computeMasking(uint32_t primaryTrackId, uint32_t vsTrackId) = 0;
     virtual ResonanceAnalysisResult computeResonances(uint32_t trackId) = 0;
     virtual PhaseMatrixAnalysisResult computePhaseMatrix(const std::vector<uint32_t>& trackIds) = 0;
-    virtual LiveTelemetryAnalysisResult getLiveTelemetry(uint32_t trackId, uint32_t windowMs) = 0;
+    virtual WindowTelemetryAnalysisResult getWindowTelemetry(uint32_t trackId, const std::string& startPos, const std::string& durPos) = 0;
     virtual PhaseAlignAnalysisResult computePhaseAlign(uint32_t trackA, uint32_t trackB) = 0;
     virtual SpectrumAnalysisResult computeSpectrum(uint32_t trackId) = 0;
     virtual LoudnessAnalysisResult computeLoudness(uint32_t trackId) = 0;

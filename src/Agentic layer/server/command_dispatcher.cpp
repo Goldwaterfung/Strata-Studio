@@ -41,7 +41,7 @@ void CommandDispatcher::registerHandlers() {
 ExecutionResult CommandDispatcher::dispatch(const ParsedArgs& args) {
     std::string verb(args.getVerb());
     if (verb.empty()) {
-        return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Empty command string.");
+        return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Empty command string.");
     }
 
     auto it = m_verbHandlers.find(verb);
@@ -49,13 +49,13 @@ ExecutionResult CommandDispatcher::dispatch(const ParsedArgs& args) {
         try {
             return it->second(args);
         } catch (const std::exception& e) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "COMMAND_EXECUTION_ERROR", e.what());
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, e.what());
         } catch (...) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "COMMAND_EXECUTION_ERROR", "Unknown exception during command execution.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Unknown exception during command execution.");
         }
     }
 
-    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "UNKNOWN_VERB", "Command verb '" + verb + "' is not recognized.");
+    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Command verb '" + verb + "' is not recognized.");
 }
 
 std::string CommandDispatcher::executeCommand(std::string_view commandLine) {

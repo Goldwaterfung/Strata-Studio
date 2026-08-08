@@ -39,7 +39,7 @@ namespace {
 
 ExecutionResult RoutingHandler::handleCommand(const ParsedArgs& args, bridge::ITrackController* trackController) {
     if (trackController == nullptr) {
-        return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "CONTROLLER_UNAVAILABLE", "Bridge track controller is not initialized.");
+        return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Bridge track controller is not initialized.");
     }
 
     std::string_view sub = args.getSubcommand();
@@ -49,27 +49,27 @@ ExecutionResult RoutingHandler::handleCommand(const ParsedArgs& args, bridge::IT
         std::string_view toBusStr = args.getOption("--to");
 
         if (tracksStr.empty() || toBusStr.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "MISSING_ARGUMENT", "Subcommand 'route folder' requires --track and --to.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Subcommand 'route folder' requires --track and --to.");
         }
 
         auto sourceTrackIds = ParsedArgs::parseIntegerRange(tracksStr);
         auto toIds = ParsedArgs::parseIntegerRange(toBusStr);
 
         if (sourceTrackIds.empty() || toIds.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_RANGE", "Invalid track or destination bus range provided.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid track or destination bus range provided.");
         }
 
         uint32_t destFolderIdInt = toIds.front();
         auto destFolderIdOpt = resolveTrackID(trackController, destFolderIdInt);
         if (!destFolderIdOpt.has_value()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "TRACK_NOT_FOUND", "Destination bus track " + std::to_string(destFolderIdInt) + " not found.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Destination bus track " + std::to_string(destFolderIdInt) + " not found.");
         }
         TrackID destFolderId = *destFolderIdOpt;
 
         for (uint32_t srcId : sourceTrackIds) {
             auto srcTrackIdOpt = resolveTrackID(trackController, srcId);
             if (!srcTrackIdOpt.has_value()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "TRACK_NOT_FOUND", "Source track " + std::to_string(srcId) + " not found.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Source track " + std::to_string(srcId) + " not found.");
             }
             trackController->setTrackParentFolder(*srcTrackIdOpt, destFolderId);
             trackController->setTrackOutputRouting(*srcTrackIdOpt, destFolderId);
@@ -84,23 +84,23 @@ ExecutionResult RoutingHandler::handleCommand(const ParsedArgs& args, bridge::IT
     if (sub == "send") {
         std::string_view fromTracksStr = args.getOption("--from");
         std::string_view toAuxStr = args.getOption("--to");
-        std::string_view dbStr = args.getOption("--db", "-12.0");
-        std::string_view tapStr = args.getOption("--tap", "post");
+        std::string_view dbStr = args.getOption("--db");
+        std::string_view tapStr = args.getOption("--tap");
 
-        if (fromTracksStr.empty() || toAuxStr.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "MISSING_ARGUMENT", "Subcommand 'route send' requires --from and --to.");
+        if (fromTracksStr.empty() || toAuxStr.empty() || dbStr.empty() || tapStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Subcommand 'route send' requires --from, --to, --db, and --tap.");
         }
 
         auto sourceTrackIds = ParsedArgs::parseIntegerRange(fromTracksStr);
         auto toIds = ParsedArgs::parseIntegerRange(toAuxStr);
 
         if (sourceTrackIds.empty() || toIds.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_RANGE", "Invalid source or aux track range provided.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid source or aux track range provided.");
         }
 
         auto dbOpt = ParsedArgs::parseFloat(dbStr);
         if (!dbOpt.has_value()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_NUMERIC_VALUE", "Invalid dB gain value: " + std::string(dbStr));
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid dB gain value: " + std::string(dbStr));
         }
 
         float db = *dbOpt;
@@ -110,19 +110,19 @@ ExecutionResult RoutingHandler::handleCommand(const ParsedArgs& args, bridge::IT
         uint32_t destAuxIdInt = toIds.front();
         auto destAuxIdOpt = resolveTrackID(trackController, destAuxIdInt);
         if (!destAuxIdOpt.has_value()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "TRACK_NOT_FOUND", "Aux track " + std::to_string(destAuxIdInt) + " not found.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Aux track " + std::to_string(destAuxIdInt) + " not found.");
         }
 
         auto auxState = trackController->getTrackState(*destAuxIdOpt);
         NodeID destNodeId = auxState.channelStripNode;
         if (!destNodeId.isValid()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_NODE", "Aux track " + std::to_string(destAuxIdInt) + " does not have a valid DSP node.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Aux track " + std::to_string(destAuxIdInt) + " does not have a valid DSP node.");
         }
 
         for (uint32_t srcId : sourceTrackIds) {
             auto srcTrackIdOpt = resolveTrackID(trackController, srcId);
             if (!srcTrackIdOpt.has_value()) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "TRACK_NOT_FOUND", "Source track " + std::to_string(srcId) + " not found.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Source track " + std::to_string(srcId) + " not found.");
             }
             TrackID srcTrackId = *srcTrackIdOpt;
             auto srcState = trackController->getTrackState(srcTrackId);
@@ -164,28 +164,28 @@ ExecutionResult RoutingHandler::handleCommand(const ParsedArgs& args, bridge::IT
     if (sub == "sidechain") {
         std::string_view sourceStr = args.getOption("--source");
         std::string_view toTrackStr = args.getOption("--to-track");
-        std::string_view slotStr = args.getOption("--slot", "0");
-        std::string_view dbStr = args.getOption("--db", "0.0");
+        std::string_view slotStr = args.getOption("--slot");
+        std::string_view dbStr = args.getOption("--db");
 
-        if (sourceStr.empty() || toTrackStr.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "MISSING_ARGUMENT", "Subcommand 'route sidechain' requires --source and --to-track.");
+        if (sourceStr.empty() || toTrackStr.empty() || slotStr.empty() || dbStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Subcommand 'route sidechain' requires --source, --to-track, --slot, and --db.");
         }
 
         auto sourceIds = ParsedArgs::parseIntegerRange(sourceStr);
         auto toTrackIds = ParsedArgs::parseIntegerRange(toTrackStr);
 
         if (sourceIds.empty() || toTrackIds.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_RANGE", "Invalid source or target track range provided.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid source or target track range provided.");
         }
 
         auto slotOpt = ParsedArgs::parseUint32(slotStr);
         if (!slotOpt.has_value()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_NUMERIC_VALUE", "Invalid plugin slot index: " + std::string(slotStr));
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid plugin slot index: " + std::string(slotStr));
         }
 
         auto dbOpt = ParsedArgs::parseFloat(dbStr);
         if (!dbOpt.has_value()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_NUMERIC_VALUE", "Invalid sidechain gain dB: " + std::string(dbStr));
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid sidechain gain dB: " + std::string(dbStr));
         }
 
         uint32_t slotIndex = *slotOpt;
@@ -193,12 +193,12 @@ ExecutionResult RoutingHandler::handleCommand(const ParsedArgs& args, bridge::IT
 
         auto sourceTrackIdOpt = resolveTrackID(trackController, sourceIds.front());
         if (!sourceTrackIdOpt.has_value()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "TRACK_NOT_FOUND", "Trigger source track " + std::to_string(sourceIds.front()) + " not found.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Trigger source track " + std::to_string(sourceIds.front()) + " not found.");
         }
 
         auto targetTrackIdOpt = resolveTrackID(trackController, toTrackIds.front());
         if (!targetTrackIdOpt.has_value()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "TRACK_NOT_FOUND", "Target track " + std::to_string(toTrackIds.front()) + " not found.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Target track " + std::to_string(toTrackIds.front()) + " not found.");
         }
 
         trackController->setPluginSidechainSource(*targetTrackIdOpt, slotIndex, *sourceTrackIdOpt, gainDb);
@@ -265,7 +265,7 @@ ExecutionResult RoutingHandler::handleCommand(const ParsedArgs& args, bridge::IT
         return ExecutionResult::MultiSuccess("ROUTE_LIST", rows);
     }
 
-    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Unknown route subcommand.");
+    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Unknown route subcommand.");
 }
 
 } // namespace agentic

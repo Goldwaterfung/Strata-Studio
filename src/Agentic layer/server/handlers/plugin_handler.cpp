@@ -40,7 +40,7 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
 
     if (sub == "list") {
         if (!trackController) {
-            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "Track controller unavailable.");
+            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "Track controller unavailable.");
         }
 
         auto plugins = trackController->getAvailablePlugins();
@@ -101,13 +101,16 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
 
     if (sub == "add") {
         if (!trackController) {
-            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "Track controller unavailable.");
+            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "Track controller unavailable.");
         }
 
-        std::string_view trackStr = args.getOption("--track", "1");
+        std::string_view trackStr = args.getOption("--track");
+        if (trackStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track argument.");
+        }
         auto trackIds = ParsedArgs::parseIntegerRange(trackStr);
         if (trackIds.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Missing or invalid --track argument.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid --track argument range.");
         }
 
         std::string_view nameOpt = args.getOption("--name");
@@ -119,7 +122,7 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
         if (!idOpt.empty()) {
             auto parsedId = ParsedArgs::parseUint32(idOpt);
             if (!parsedId) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid numerical plugin --id.");
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numerical plugin --id.");
             }
             resolvedPluginId = *parsedId;
             pluginName = "ID:" + std::to_string(resolvedPluginId);
@@ -127,23 +130,24 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
             // Strict exact case-sensitive lookup per grilling decisions
             resolvedPluginId = trackController->findPluginIdByName(nameOpt);
             if (resolvedPluginId == UINT32_MAX) {
-                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+                return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                                                "Plugin with exact case-sensitive name '" + std::string(nameOpt) + "' was not found.");
             }
             pluginName = std::string(nameOpt);
         } else {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Must specify --name or --id to add plugin.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Must specify --name or --id to add plugin.");
         }
 
         uint32_t slotIdx = 0;
         std::string_view slotOpt = args.getOption("--slot");
-        if (!slotOpt.empty()) {
-            auto parsedSlot = ParsedArgs::parseUint32(slotOpt);
-            if (!parsedSlot || *parsedSlot >= 8) {
-                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Slot index must be between 0 and 7.");
-            }
-            slotIdx = *parsedSlot;
+        if (slotOpt.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --slot argument.");
         }
+        auto parsedSlot = ParsedArgs::parseUint32(slotOpt);
+        if (!parsedSlot || *parsedSlot >= 8) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Slot index must be between 0 and 7.");
+        }
+        slotIdx = *parsedSlot;
 
         for (uint32_t trkId : trackIds) {
             trackController->insertPlugin(TrackID{trkId, 1}, slotIdx, resolvedPluginId);
@@ -159,40 +163,49 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
 
     if (sub == "set-param") {
         if (!trackController) {
-            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "Track controller unavailable.");
+            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "Track controller unavailable.");
         }
 
-        std::string_view trackStr = args.getOption("--track", "1");
+        std::string_view trackStr = args.getOption("--track");
+        if (trackStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track argument.");
+        }
         auto trackIdOpt = ParsedArgs::parseUint32(trackStr);
         if (!trackIdOpt) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid --track specification.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid --track specification.");
         }
 
-        std::string_view slotStr = args.getOption("--plugin", args.getOption("--slot", "0"));
+        std::string_view slotStr = args.getOption("--plugin", args.getOption("--slot"));
+        if (slotStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --plugin or --slot argument.");
+        }
         auto slotOpt = ParsedArgs::parseUint32(slotStr);
         if (!slotOpt || *slotOpt >= 8) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Plugin slot index must be between 0 and 7.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Plugin slot index must be between 0 and 7.");
         }
 
-        std::string_view paramStr = args.getOption("--param", "0");
+        std::string_view paramStr = args.getOption("--param");
+        if (paramStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --param index argument.");
+        }
         auto paramOpt = ParsedArgs::parseUint32(paramStr);
         if (!paramOpt) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid --param index.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid --param index.");
         }
 
         std::string_view valStr = args.getOption("--val");
         if (valStr.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Missing required --val parameter value.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --val parameter value.");
         }
 
         auto valFloatOpt = ParsedArgs::parseFloat(valStr);
         if (!valFloatOpt) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid numeric --val parameter value.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric --val parameter value.");
         }
 
         float val = *valFloatOpt;
         if (val < 0.0f || val > 1.0f) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "--val parameter value must be normalized between 0.0 and 1.0.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "--val parameter value must be normalized between 0.0 and 1.0.");
         }
 
         trackController->setPluginParameter(TrackID{*trackIdOpt, 1}, *slotOpt, *paramOpt, val);
@@ -207,25 +220,31 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
 
     if (sub == "copy") {
         if (!trackController) {
-            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "Track controller unavailable.");
+            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "Track controller unavailable.");
         }
 
-        std::string_view fromTrackStr = args.getOption("--from-track", "1");
+        std::string_view fromTrackStr = args.getOption("--from-track");
+        if (fromTrackStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --from-track argument.");
+        }
         auto fromTrackOpt = ParsedArgs::parseUint32(fromTrackStr);
         if (!fromTrackOpt) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid --from-track specification.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid --from-track specification.");
         }
 
-        std::string_view slotStr = args.getOption("--slot", "0");
+        std::string_view slotStr = args.getOption("--slot");
+        if (slotStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --slot argument.");
+        }
         auto slotOpt = ParsedArgs::parseUint32(slotStr);
         if (!slotOpt || *slotOpt >= 8) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Slot index must be between 0 and 7.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Slot index must be between 0 and 7.");
         }
 
         std::string_view toTracksStr = args.getOption("--to-tracks");
         auto toTracks = ParsedArgs::parseIntegerRange(toTracksStr);
         if (toTracks.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Missing or invalid --to-tracks specification.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing or invalid --to-tracks specification.");
         }
 
         uint32_t srcSlotIdx = *slotOpt;
@@ -233,7 +252,7 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
 
         uint32_t srcPluginId = trackController->getPluginIdInSlot(srcTrackId, srcSlotIdx);
         if (srcPluginId == UINT32_MAX) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND",
+            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND,
                                            "Source slot " + std::to_string(srcSlotIdx) + " on track " + std::to_string(*fromTrackOpt) + " is empty.");
         }
 
@@ -243,7 +262,7 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
         if (!overwrite) {
             for (uint32_t dstTrk : toTracks) {
                 if (trackController->getPluginIdInSlot(TrackID{dstTrk, 1}, srcSlotIdx) != UINT32_MAX) {
-                    return ExecutionResult::Error(ErrorCode::RESOURCE_BUSY_USER_TOUCH, "RESOURCE_BUSY",
+                    return ExecutionResult::Error(ErrorCode::RESOURCE_BUSY_USER_TOUCH,
                                                    "Destination slot " + std::to_string(srcSlotIdx) + " on track " + std::to_string(dstTrk) +
                                                    " is occupied. Pass --overwrite flag to replace.");
                 }
@@ -269,19 +288,22 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
 
     if (sub == "copy-chain") {
         if (!trackController) {
-            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "DAW_NOT_RUNNING", "Track controller unavailable.");
+            return ExecutionResult::Error(ErrorCode::DAW_NOT_RUNNING, "Track controller unavailable.");
         }
 
-        std::string_view fromTrackStr = args.getOption("--from-track", "1");
+        std::string_view fromTrackStr = args.getOption("--from-track");
+        if (fromTrackStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --from-track argument.");
+        }
         auto fromTrackOpt = ParsedArgs::parseUint32(fromTrackStr);
         if (!fromTrackOpt) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Invalid --from-track specification.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid --from-track specification.");
         }
 
         std::string_view toTracksStr = args.getOption("--to-tracks");
         auto toTracks = ParsedArgs::parseIntegerRange(toTracksStr);
         if (toTracks.empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Missing or invalid --to-tracks specification.");
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing or invalid --to-tracks specification.");
         }
 
         TrackID srcTrackId{*fromTrackOpt, 1};
@@ -293,7 +315,7 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
                 if (trackController->getPluginIdInSlot(srcTrackId, s) != UINT32_MAX) {
                     for (uint32_t dstTrk : toTracks) {
                         if (trackController->getPluginIdInSlot(TrackID{dstTrk, 1}, s) != UINT32_MAX) {
-                            return ExecutionResult::Error(ErrorCode::RESOURCE_BUSY_USER_TOUCH, "RESOURCE_BUSY",
+                            return ExecutionResult::Error(ErrorCode::RESOURCE_BUSY_USER_TOUCH,
                                                            "Destination slot " + std::to_string(s) + " on track " + std::to_string(dstTrk) +
                                                            " is occupied. Pass --overwrite flag to replace.");
                         }
@@ -326,7 +348,7 @@ ExecutionResult PluginHandler::handleCommand(const ParsedArgs& args,
         });
     }
 
-    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Unknown plugin subcommand.");
+    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Unknown plugin subcommand.");
 }
 
 } // namespace agentic

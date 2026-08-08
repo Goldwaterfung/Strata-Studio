@@ -1316,7 +1316,7 @@ void PlaylistWindow::onAnalyzeLoudnessRequested()
     uint32_t sampleRate = static_cast<uint32_t>(m_ctrl.timeline->getSampleRate());
 
     // Start the silent mix analysis
-    m_ctrl.render->startSilentMixAnalysis(startFrame, endFrame, sampleRate);
+    m_ctrl.render->startSilentMixAnalysis(startFrame, endFrame, sampleRate, 0);
 
     // Create a progress dialog
     QProgressDialog progressDialog(tr("Analyzing mix loudness..."), tr("Cancel"), 0, 100, this);

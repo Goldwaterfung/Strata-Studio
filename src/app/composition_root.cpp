@@ -57,6 +57,7 @@
 #include "Media management/browser/iproject_browser.h"
 #include "Media management/library/isample_library_browser.h"
 #include "Middle Bridge/automation/iautomation_recording_gateway.h"
+#include "Middle Bridge/analysis/analysis_controller.h"
 #include "musical_composition/recording/take_recording_intake.h"
 #include "recording/recording_controller.h"
 #include "Media management/recording/disk_writer_service_impl.h"
@@ -568,6 +569,19 @@ bool CompositionRoot::wireLayer6ToLayer7() {
     );
     renderController_->setAudioEngine(audioEngine_.get());
 
+    analysisController_ = std::make_unique<bridge::AnalysisController>(
+        audioAnalysisEngine_.get(),
+        hardwareSettingsFacade_.get()
+    );
+    analysisController_->setMediaRegistry(mediaRegistry_.get());
+    analysisController_->setSessionManager(sessionManager_.get());
+    analysisController_->setMeteringProvider(meteringProvider_.get());
+    analysisController_->setStringRegistry(stringRegistry_.get());
+    analysisController_->setRenderController(renderController_.get());
+    analysisController_->setLifecycleController(projectLifecycleController_.get());
+    analysisController_->setTimelineController(timelineController_.get());
+    analysisController_->setArrangementController(arrangementController_.get());
+
     // 4. Register Controllers as ISessionChangeListener Observers
     sessionManager_->registerChangeListener(trackController_.get());
     sessionManager_->registerChangeListener(arrangementController_.get());
@@ -605,6 +619,7 @@ bridge::IWorkspaceController* CompositionRoot::getWorkspaceController() const { 
 bridge::IMidiEditorController* CompositionRoot::getMidiEditorController() const { return midiEditorController_.get(); }
 bridge::IArrangementManagerController* CompositionRoot::getArrangementManagerController() const { return arrangementManagerController_.get(); }
 bridge::IRenderController* CompositionRoot::getRenderController() const { return renderController_.get(); }
+bridge::IAnalysisController* CompositionRoot::getAnalysisController() const { return analysisController_.get(); }
 
 bool CompositionRoot::connectAudioToBridges() {
     std::cout << "CompositionRoot: Connecting audio to bridges..." << std::endl;

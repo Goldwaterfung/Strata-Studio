@@ -196,7 +196,7 @@ void RenderController::onExportCompleted(uint64_t jobId, bool success, const cha
     }
 }
 
-void RenderController::startSilentMixAnalysis(uint64_t startFrame, uint64_t endFrame, uint32_t sampleRate) {
+void RenderController::startSilentMixAnalysis(uint64_t startFrame, uint64_t endFrame, uint32_t sampleRate, uint32_t isolateTrackId) {
     if (!m_exportService) return;
 
     m_hasFailed = false;
@@ -213,6 +213,7 @@ void RenderController::startSilentMixAnalysis(uint64_t startFrame, uint64_t endF
         endFrame,
         sampleRate,
         2, // Stereo
+        isolateTrackId,
         &RenderController::onAnalysisCompleted,
         this
     );
@@ -240,6 +241,13 @@ void RenderController::onAnalysisCompleted(
                     stats.integratedLoudnessLUFS = result.integratedLoudnessLUFS;
                     stats.truePeakDBTP = result.truePeakDBTP;
                     stats.clippingDetected = result.clippingDetected;
+                    stats.samplePeakDBFS = result.samplePeakDBFS;
+                    stats.midRmsDbfs = result.midRmsDbfs;
+                    stats.sideRmsDbfs = result.sideRmsDbfs;
+                    stats.msRatioDb = result.msRatioDb;
+                    stats.stereoWidthPct = result.stereoWidthPct;
+                    stats.monoFoldLossDb = result.monoFoldLossDb;
+                    stats.stereoCorrelation = result.stereoCorrelation;
                     session->setMixStatistics(stats);
                 }
             }
@@ -253,6 +261,11 @@ void RenderController::onAnalysisCompleted(
             }
         }
     }
+}
+
+bool RenderController::renderTrackToBufferSync(uint32_t trackId, uint64_t startFrame, uint64_t endFrame, uint32_t sampleRate, std::vector<float>& outBuffer) {
+    if (!m_exportService) return false;
+    return m_exportService->renderTrackToBufferSync(trackId, startFrame, endFrame, sampleRate, outBuffer);
 }
 
 void RenderController::setAudioEngine(Layer3::IAudioEngine* engine) {

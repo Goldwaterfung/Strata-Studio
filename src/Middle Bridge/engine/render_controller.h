@@ -22,7 +22,8 @@ public:
     const char* getRenderStatusMessage() const override;
     void cancelOfflineRender() override;
     bool hasFailed(char* outError, uint32_t maxLen) const override;
-    void startSilentMixAnalysis(uint64_t startFrame, uint64_t endFrame, uint32_t sampleRate) override;
+    void startSilentMixAnalysis(uint64_t startFrame, uint64_t endFrame, uint32_t sampleRate, uint32_t isolateTrackId = 0) override;
+    bool renderTrackToBufferSync(uint32_t trackId, uint64_t startFrame, uint64_t endFrame, uint32_t sampleRate, std::vector<float>& outBuffer) override;
 
     void setAudioEngine(Layer3::IAudioEngine* engine);
 

@@ -34,6 +34,13 @@ struct MixStatistics {
     float integratedLoudnessLUFS = 0.0f;
     float truePeakDBTP = 0.0f;
     bool clippingDetected = false;
+    float samplePeakDBFS = -120.0f;
+    float midRmsDbfs = -120.0f;
+    float sideRmsDbfs = -120.0f;
+    float msRatioDb = 0.0f;
+    float stereoWidthPct = 0.0f;
+    float monoFoldLossDb = 0.0f;
+    float stereoCorrelation = 1.0f;
 };
 
 class IMarkerManager;

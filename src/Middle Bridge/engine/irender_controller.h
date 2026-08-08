@@ -17,7 +17,8 @@ public:
     virtual const char* getRenderStatusMessage() const = 0; // Current step detail
     virtual void cancelOfflineRender() = 0;
     virtual bool hasFailed(char* outError, uint32_t maxLen) const = 0;
-    virtual void startSilentMixAnalysis(uint64_t startFrame, uint64_t endFrame, uint32_t sampleRate) = 0;
+    virtual void startSilentMixAnalysis(uint64_t startFrame, uint64_t endFrame, uint32_t sampleRate, uint32_t isolateTrackId = 0) = 0;
+    virtual bool renderTrackToBufferSync(uint32_t trackId, uint64_t startFrame, uint64_t endFrame, uint32_t sampleRate, std::vector<float>& outBuffer) = 0;
 };
 
 } // namespace bridge

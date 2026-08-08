@@ -244,6 +244,74 @@ namespace Analysis {
     }
 
     /**
+     * @brief Result structure for cross-track phase alignment.
+     */
+    struct PhaseAlignResult {
+        int32_t recommendedSampleOffset = 0;
+        float recommendedTimeOffsetMs = 0.0f;
+        float currentCorrelation = 0.0f;
+        float improvedCorrelation = 0.0f;
+        std::string recommendedAction;
+    };
+
+    /**
+     * @brief Searches for optimal time-lag sample offset between two audio buffers to maximize phase alignment.
+     */
+    inline PhaseAlignResult calculatePhaseAlignment(const float* a, const float* b,
+                                                    uint32_t size, float sampleRate,
+                                                    uint32_t maxLagSamples) {
+        PhaseAlignResult result{};
+        if (!a || !b || size == 0 || sampleRate <= 0.0f) {
+            result.recommendedAction = "NONE";
+            return result;
+        }
+
+        result.currentCorrelation = calculateCorrelation(a, b, size);
+        result.improvedCorrelation = result.currentCorrelation;
+
+        float bestScore = std::abs(result.currentCorrelation);
+        int32_t bestLag = 0;
+        float bestSignedCorr = result.currentCorrelation;
+
+        uint32_t searchLimit = std::min(maxLagSamples, size / 2);
+
+        for (int32_t lag = -static_cast<int32_t>(searchLimit); lag <= static_cast<int32_t>(searchLimit); ++lag) {
+            if (lag == 0) continue;
+
+            uint32_t absLag = static_cast<uint32_t>(std::abs(lag));
+            if (absLag >= size) continue;
+            uint32_t compareSize = size - absLag;
+            if (compareSize == 0) continue;
+
+            const float* ptrA = (lag >= 0) ? a : (a + absLag);
+            const float* ptrB = (lag >= 0) ? (b + absLag) : b;
+
+            float corr = calculateCorrelation(ptrA, ptrB, compareSize);
+            float score = std::abs(corr);
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestLag = lag;
+                bestSignedCorr = corr;
+            }
+        }
+
+        result.recommendedSampleOffset = bestLag;
+        result.recommendedTimeOffsetMs = (static_cast<float>(bestLag) / sampleRate) * 1000.0f;
+        result.improvedCorrelation = bestSignedCorr;
+
+        if (bestSignedCorr < -0.50f) {
+            result.recommendedAction = "INVERT_POLARITY_TRACK_B";
+        } else if (std::abs(bestLag) > 0) {
+            result.recommendedAction = "DELAY_TRACK_B_BY_" + std::to_string(std::abs(bestLag)) + "_SAMPLES";
+        } else {
+            result.recommendedAction = "ALIGNED_NO_ACTION";
+        }
+
+        return result;
+    }
+
+    /**
      * @brief Result structure for Multi-Track Pairwise Phase Correlation Matrix.
      */
     struct PhaseMatrixResult {

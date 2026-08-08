@@ -133,11 +133,16 @@ TrackID createTrackByType(bridge::ITrackController* controller, std::string_view
     return controller->addAudioTrack(name, 2, color);
 }
 
-std::vector<uint32_t> getTrackRangeOrDefault(const ParsedArgs& args, std::string_view optName = "--track", std::string_view defaultRange = "1") {
-    auto trackIds = ParsedArgs::parseIntegerRange(args.getOption(optName, defaultRange));
+std::vector<uint32_t> requireTrackRange(const ParsedArgs& args, std::string_view optName, std::optional<ExecutionResult>& errOut) {
+    std::string_view opt = args.getOption(optName);
+    if (opt.empty()) {
+        errOut = ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required " + std::string(optName) + " argument.");
+        return {};
+    }
+    auto trackIds = ParsedArgs::parseIntegerRange(opt);
     if (trackIds.empty()) {
-        auto defaultIds = ParsedArgs::parseIntegerRange(defaultRange);
-        return defaultIds.empty() ? std::vector<uint32_t>{1} : defaultIds;
+        errOut = ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid range format for " + std::string(optName) + ".");
+        return {};
     }
     return trackIds;
 }
@@ -149,10 +154,15 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     std::string_view sub = args.getSubcommand();
 
     if (sub == "create") {
-        std::string_view name = args.getOption("--name", "Untitled Track");
-        std::string_view type = args.getOption("--type", "audio");
-        uint32_t color = parseColorARGB(args.getOption("--color", "blue"));
+        std::string_view name = args.getOption("--name");
+        std::string_view type = args.getOption("--type");
+        std::string_view colorStr = args.getOption("--color");
 
+        if (name.empty() || type.empty() || colorStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Subcommand 'track create' requires --name, --type, and --color.");
+        }
+
+        uint32_t color = parseColorARGB(colorStr);
         TrackID newId = createTrackByType(trackController, type, std::string(name).c_str(), color);
 
         return ExecutionResult::Success("TRACK_CREATED", {
@@ -163,10 +173,13 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     }
 
     if (sub == "create-batch") {
-        std::string_view namesStr = args.getOption("--names", "Track_1,Track_2");
-        std::string_view type = args.getOption("--type", "audio");
-        std::vector<std::map<std::string, std::string>> rows;
+        std::string_view namesStr = args.getOption("--names");
+        std::string_view type = args.getOption("--type");
+        if (namesStr.empty() || type.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Subcommand 'track create-batch' requires --names and --type.");
+        }
 
+        std::vector<std::map<std::string, std::string>> rows;
         std::string namesCopy{namesStr};
         std::stringstream ss{namesCopy};
         std::string nameItem;
@@ -218,7 +231,9 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     }
 
     if (sub == "inspect") {
-        auto trackIds = getTrackRangeOrDefault(args, "--track", "1");
+        std::optional<ExecutionResult> err;
+        auto trackIds = requireTrackRange(args, "--track", err);
+        if (trackIds.empty()) return *err;
         uint32_t trackIdInt = trackIds.front();
 
         std::map<std::string, std::string> fields;
@@ -246,10 +261,19 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     }
 
     if (sub == "set-gain") {
-        std::string_view trackStr = args.getOption("--track", "1");
-        std::string_view dbStr = args.getOption("--db", "0.0");
-        float db = ParsedArgs::parseFloat(dbStr).value_or(0.0f);
-        auto trackIds = getTrackRangeOrDefault(args, "--track", "1");
+        std::string_view trackStr = args.getOption("--track");
+        std::string_view dbStr = args.getOption("--db");
+        if (trackStr.empty() || dbStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Subcommand 'track set-gain' requires --track and --db.");
+        }
+        auto dbOpt = ParsedArgs::parseFloat(dbStr);
+        if (!dbOpt.has_value()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --db.");
+        }
+        float db = *dbOpt;
+        std::optional<ExecutionResult> err;
+        auto trackIds = requireTrackRange(args, "--track", err);
+        if (trackIds.empty()) return *err;
 
         if (trackController != nullptr) {
             float linearGain = std::pow(10.0f, db / 20.0f);
@@ -267,10 +291,19 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     }
 
     if (sub == "set-pan") {
-        std::string_view trackStr = args.getOption("--track", "1");
-        std::string_view valStr = args.getOption("--value", "0.0");
-        float panVal = ParsedArgs::parseFloat(valStr).value_or(0.0f);
-        auto trackIds = getTrackRangeOrDefault(args, "--track", "1");
+        std::string_view trackStr = args.getOption("--track");
+        std::string_view valStr = args.getOption("--value");
+        if (trackStr.empty() || valStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Subcommand 'track set-pan' requires --track and --value.");
+        }
+        auto panOpt = ParsedArgs::parseFloat(valStr);
+        if (!panOpt.has_value()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --value.");
+        }
+        float panVal = *panOpt;
+        std::optional<ExecutionResult> err;
+        auto trackIds = requireTrackRange(args, "--track", err);
+        if (trackIds.empty()) return *err;
 
         if (trackController != nullptr) {
             float normPan = (panVal + 1.0f) * 0.5f;
@@ -286,9 +319,14 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     }
 
     if (sub == "set-mute") {
-        std::string_view trackStr = args.getOption("--track", "1");
+        std::string_view trackStr = args.getOption("--track");
+        if (trackStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track argument.");
+        }
         bool on = args.hasFlag("on");
-        auto trackIds = getTrackRangeOrDefault(args, "--track", "1");
+        std::optional<ExecutionResult> err;
+        auto trackIds = requireTrackRange(args, "--track", err);
+        if (trackIds.empty()) return *err;
 
         if (trackController != nullptr) {
             for (uint32_t tid : trackIds) {
@@ -303,9 +341,14 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     }
 
     if (sub == "set-solo") {
-        std::string_view trackStr = args.getOption("--track", "1");
+        std::string_view trackStr = args.getOption("--track");
+        if (trackStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track argument.");
+        }
         bool on = args.hasFlag("on");
-        auto trackIds = getTrackRangeOrDefault(args, "--track", "1");
+        std::optional<ExecutionResult> err;
+        auto trackIds = requireTrackRange(args, "--track", err);
+        if (trackIds.empty()) return *err;
 
         if (trackController != nullptr) {
             for (uint32_t tid : trackIds) {
@@ -320,8 +363,13 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     }
 
     if (sub == "delete") {
-        std::string_view trackStr = args.getOption("--track", "1");
-        auto trackIds = getTrackRangeOrDefault(args, "--track", "1");
+        std::string_view trackStr = args.getOption("--track");
+        if (trackStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track argument.");
+        }
+        std::optional<ExecutionResult> err;
+        auto trackIds = requireTrackRange(args, "--track", err);
+        if (trackIds.empty()) return *err;
 
         if (trackController != nullptr) {
             for (uint32_t tid : trackIds) {
@@ -335,10 +383,15 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     }
 
     if (sub == "set-color") {
-        std::string_view trackStr = args.getOption("--track", "1");
-        std::string_view colorStr = args.getOption("--color", "blue");
+        std::string_view trackStr = args.getOption("--track");
+        std::string_view colorStr = args.getOption("--color");
+        if (trackStr.empty() || colorStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Subcommand 'track set-color' requires --track and --color.");
+        }
         uint32_t color = parseColorARGB(colorStr);
-        auto trackIds = getTrackRangeOrDefault(args, "--track", "1");
+        std::optional<ExecutionResult> err;
+        auto trackIds = requireTrackRange(args, "--track", err);
+        if (trackIds.empty()) return *err;
 
         if (trackController != nullptr) {
             for (uint32_t tid : trackIds) {
@@ -379,10 +432,19 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
     }
 
     if (verb == "prep" || sub == "gain-stage") {
-        std::string_view trackStr = args.getOption("--track", "1..8");
-        std::string_view targetRmsStr = args.getOption("--target-rms", "-18.0");
-        float targetRms = ParsedArgs::parseFloat(targetRmsStr).value_or(-18.0f);
-        auto trackIds = getTrackRangeOrDefault(args, "--track", "1..8");
+        std::string_view trackStr = args.getOption("--track");
+        std::string_view targetRmsStr = args.getOption("--target-rms");
+        if (trackStr.empty() || targetRmsStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Subcommand 'prep gain-stage' requires --track and --target-rms.");
+        }
+        auto targetRmsOpt = ParsedArgs::parseFloat(targetRmsStr);
+        if (!targetRmsOpt.has_value()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --target-rms.");
+        }
+        float targetRms = *targetRmsOpt;
+        std::optional<ExecutionResult> err;
+        auto trackIds = requireTrackRange(args, "--track", err);
+        if (trackIds.empty()) return *err;
 
         if (trackController != nullptr) {
             float linearGain = std::pow(10.0f, targetRms / 20.0f);
@@ -399,7 +461,7 @@ ExecutionResult TrackHandler::handleCommand(const ParsedArgs& args, bridge::ITra
         });
     }
 
-    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Unknown track subcommand.");
+    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Unknown track subcommand.");
 }
 
 } // namespace agentic

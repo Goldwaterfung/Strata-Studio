@@ -62,8 +62,15 @@ ExecutionResult TransportHandler::handleCommand(const ParsedArgs& args, bridge::
             return ExecutionResult::Success("PLAYBACK_STOPPED", {{"state", "stopped"}});
         }
         if (sub == "set-tempo") {
-            std::string_view bpmStr = args.getOption("--bpm", args.getOption("--tempo", "120.0"));
-            double bpm = ParsedArgs::parseDouble(bpmStr).value_or(120.0);
+            std::string_view bpmStr = args.getOption("--bpm", args.getOption("--tempo"));
+            if (bpmStr.empty()) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --bpm or --tempo argument.");
+            }
+            auto bpmOpt = ParsedArgs::parseDouble(bpmStr);
+            if (!bpmOpt.has_value()) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --bpm.");
+            }
+            double bpm = *bpmOpt;
             if (timeline != nullptr) {
                 timeline->setBPM(bpm);
             }
@@ -72,10 +79,18 @@ ExecutionResult TransportHandler::handleCommand(const ParsedArgs& args, bridge::
             return ExecutionResult::Success("TEMPO_UPDATED", {{"tempo", ssBpm.str()}});
         }
         if (sub == "set-time-signature") {
-            std::string_view numStr = args.getOption("--num", "4");
-            std::string_view denStr = args.getOption("--den", "4");
-            uint8_t num = static_cast<uint8_t>(ParsedArgs::parseUint32(numStr).value_or(4));
-            uint8_t den = static_cast<uint8_t>(ParsedArgs::parseUint32(denStr).value_or(4));
+            std::string_view numStr = args.getOption("--num");
+            std::string_view denStr = args.getOption("--den");
+            if (numStr.empty() || denStr.empty()) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --num and --den time signature arguments.");
+            }
+            auto numOpt = ParsedArgs::parseUint32(numStr);
+            auto denOpt = ParsedArgs::parseUint32(denStr);
+            if (!numOpt.has_value() || !denOpt.has_value()) {
+                return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for time signature numerator/denominator.");
+            }
+            uint8_t num = static_cast<uint8_t>(*numOpt);
+            uint8_t den = static_cast<uint8_t>(*denOpt);
             if (timeline != nullptr) {
                 timeline->setTimeSignature({num, den});
             }
@@ -83,7 +98,7 @@ ExecutionResult TransportHandler::handleCommand(const ParsedArgs& args, bridge::
         }
     }
 
-    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Unknown transport subcommand or flag.");
+    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Unknown transport subcommand or flag.");
 }
 
 } // namespace agentic

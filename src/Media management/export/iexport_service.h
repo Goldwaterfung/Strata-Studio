@@ -38,12 +38,19 @@ public:
                                      void* context) = 0;
 
     /**
-     * @brief Results from the silent loudness and peak analysis.
+     * @brief Results from the silent loudness, stereo width, and peak analysis.
      */
     struct AnalysisResult {
         float integratedLoudnessLUFS = 0.0f;
         float truePeakDBTP = 0.0f;
         bool clippingDetected = false;
+        float samplePeakDBFS = -120.0f;
+        float midRmsDbfs = -120.0f;
+        float sideRmsDbfs = -120.0f;
+        float msRatioDb = 0.0f;
+        float stereoWidthPct = 0.0f;
+        float monoFoldLossDb = 0.0f;
+        float stereoCorrelation = 1.0f;
     };
 
     /**
@@ -58,8 +65,18 @@ public:
                                                  uint64_t endSample,
                                                  uint32_t sampleRate,
                                                  uint16_t numChannels,
+                                                 uint32_t isolateTrackId,
                                                  AnalysisCallback callback,
                                                  void* context) = 0;
+
+    /**
+     * @brief Synchronously renders an isolated track offline into an in-memory mono PCM float buffer.
+     */
+    virtual bool renderTrackToBufferSync(uint32_t trackId,
+                                        uint64_t startSample,
+                                        uint64_t endSample,
+                                        uint32_t sampleRate,
+                                        std::vector<float>& outMonoBuffer) = 0;
 
     /**
      * @brief Poll for progress of an ongoing job.

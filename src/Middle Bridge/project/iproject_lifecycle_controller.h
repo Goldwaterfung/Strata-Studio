@@ -27,6 +27,13 @@ struct MixStatisticsState {
     float integratedLoudnessLUFS;
     float truePeakDBTP;
     bool clippingDetected;
+    float samplePeakDBFS;
+    float midRmsDbfs;
+    float sideRmsDbfs;
+    float msRatioDb;
+    float stereoWidthPct;
+    float monoFoldLossDb;
+    float stereoCorrelation;
 };
 
 /**

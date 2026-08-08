@@ -12,12 +12,30 @@ TEST_CASE("agentic::AnalysisHandler Strict Non-Fallback Audit", "[agentic][analy
         REQUIRE(res.symbol == "CONTROLLER_UNAVAILABLE");
     }
 
-    SECTION("Executes dynamically when controller is injected") {
+    SECTION("Fails cleanly with INVALID_ARGS when required --track option is missing") {
         bridge::AnalysisController controller;
-        agentic::ParsedArgs args = agentic::ParsedArgs::parseCommandLine("analyze spectrum --track 1");
+        agentic::ParsedArgs args = agentic::ParsedArgs::parseCommandLine("analyze spectrum");
         auto res = agentic::AnalysisHandler::handleCommand(args, &controller);
-        REQUIRE(res.isSuccess());
-        REQUIRE(res.fields.at("TRACK_ID") == "1");
-        REQUIRE(res.fields.count("SPECTRAL_CENTROID_HZ") == 1);
+        REQUIRE_FALSE(res.isSuccess());
+        REQUIRE(res.code == agentic::ErrorCode::INVALID_ARGS);
+        REQUIRE(res.symbol == "INVALID_ARGS");
+    }
+
+    SECTION("Fails cleanly with INVALID_ARGS when window start or duration is omitted") {
+        bridge::AnalysisController controller;
+        agentic::ParsedArgs args = agentic::ParsedArgs::parseCommandLine("analyze window --track 1");
+        auto res = agentic::AnalysisHandler::handleCommand(args, &controller);
+        REQUIRE_FALSE(res.isSuccess());
+        REQUIRE(res.code == agentic::ErrorCode::INVALID_ARGS);
+        REQUIRE(res.symbol == "INVALID_ARGS");
+    }
+
+    SECTION("Fails cleanly with UNKNOWN_SUBCOMMAND when unknown analysis type requested") {
+        bridge::AnalysisController controller;
+        agentic::ParsedArgs args = agentic::ParsedArgs::parseCommandLine("analyze unknown_type --track 1");
+        auto res = agentic::AnalysisHandler::handleCommand(args, &controller);
+        REQUIRE_FALSE(res.isSuccess());
+        REQUIRE(res.code == agentic::ErrorCode::INVALID_ARGS);
+        REQUIRE(res.symbol == "UNKNOWN_SUBCOMMAND");
     }
 }

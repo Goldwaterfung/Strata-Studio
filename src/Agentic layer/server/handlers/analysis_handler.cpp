@@ -1,5 +1,6 @@
 #include "analysis_handler.h"
 #include "../../../Middle Bridge/analysis/ianalysis_controller.h"
+#include "../../common/parsed_args.h"
 #include <sstream>
 #include <vector>
 #include <string>
@@ -9,35 +10,17 @@ namespace agentic {
 
 namespace {
 
-std::vector<uint32_t> parseTrackRange(std::string_view trackStr) {
-    std::vector<uint32_t> tracks;
-    std::string str(trackStr);
-
-    auto rangePos = str.find("..");
-    if (rangePos != std::string::npos) {
-        uint32_t start = static_cast<uint32_t>(std::atoi(str.substr(0, rangePos).c_str()));
-        uint32_t end = static_cast<uint32_t>(std::atoi(str.substr(rangePos + 2).c_str()));
-        if (start > 0 && end >= start) {
-            for (uint32_t i = start; i <= end; ++i) {
-                tracks.push_back(i);
-            }
-        }
-        return tracks;
+std::optional<uint32_t> requireTrackId(const ParsedArgs& args, std::optional<ExecutionResult>& errOut) {
+    if (!args.hasFlag("--track") || args.getOption("--track").empty()) {
+        errOut = ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track argument.");
+        return std::nullopt;
     }
-
-    std::stringstream ss(str);
-    std::string token;
-    while (std::getline(ss, token, ',')) {
-        if (!token.empty()) {
-            uint32_t val = static_cast<uint32_t>(std::atoi(token.c_str()));
-            if (val > 0) tracks.push_back(val);
-        }
+    auto trackOpt = ParsedArgs::parseUint32(args.getOption("--track"));
+    if (!trackOpt.has_value()) {
+        errOut = ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --track.");
+        return std::nullopt;
     }
-
-    if (tracks.empty()) {
-        tracks.push_back(1);
-    }
-    return tracks;
+    return *trackOpt;
 }
 
 } // namespace
@@ -50,12 +33,14 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
     std::string_view sub = args.getSubcommand();
 
     if (sub == "spectrum") {
-        std::string_view trackStr = args.getOption("--track", "1");
-        uint32_t trackId = static_cast<uint32_t>(std::atoi(std::string(trackStr).c_str()));
+        std::optional<ExecutionResult> err;
+        auto trackOpt = requireTrackId(args, err);
+        if (!trackOpt) return *err;
+        uint32_t trackId = *trackOpt;
 
         auto res = controller->computeSpectrum(trackId);
         if (!res.success) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "TRACK_NOT_FOUND", res.errorMessage);
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, res.errorMessage);
         }
 
         return ExecutionResult::Success("ANALYSIS_SPECTRUM", {
@@ -74,12 +59,14 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
     }
 
     if (sub == "resonance") {
-        std::string_view trackStr = args.getOption("--track", "1");
-        uint32_t trackId = static_cast<uint32_t>(std::atoi(std::string(trackStr).c_str()));
+        std::optional<ExecutionResult> err;
+        auto trackOpt = requireTrackId(args, err);
+        if (!trackOpt) return *err;
+        uint32_t trackId = *trackOpt;
 
         auto res = controller->computeResonances(trackId);
         if (!res.success) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "TRACK_NOT_FOUND", res.errorMessage);
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, res.errorMessage);
         }
 
         std::map<std::string, std::string> fields;
@@ -101,17 +88,21 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
     }
 
     if (sub == "masking") {
-        if (args.getOption("--vs").empty()) {
-            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Missing required --vs target track argument.");
+        if (!args.hasFlag("--track") || args.getOption("--track").empty() ||
+            !args.hasFlag("--vs") || args.getOption("--vs").empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track or --vs target track argument.");
         }
-        std::string_view primaryStr = args.getOption("--track", "1");
-        std::string_view vsStr = args.getOption("--vs", "5");
-        uint32_t primaryTrack = static_cast<uint32_t>(std::atoi(std::string(primaryStr).c_str()));
-        uint32_t vsTrack = static_cast<uint32_t>(std::atoi(std::string(vsStr).c_str()));
+        auto trackOpt = ParsedArgs::parseUint32(args.getOption("--track"));
+        auto vsOpt = ParsedArgs::parseUint32(args.getOption("--vs"));
+        if (!trackOpt.has_value() || !vsOpt.has_value()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --track or --vs.");
+        }
+        uint32_t primaryTrack = *trackOpt;
+        uint32_t vsTrack = *vsOpt;
 
         auto res = controller->computeMasking(primaryTrack, vsTrack);
         if (!res.success) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "TRACK_NOT_FOUND", res.errorMessage);
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, res.errorMessage);
         }
 
         std::map<std::string, std::string> fields;
@@ -133,12 +124,14 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
     }
 
     if (sub == "loudness") {
-        std::string_view trackStr = args.getOption("--track", "0");
-        uint32_t trackId = static_cast<uint32_t>(std::atoi(std::string(trackStr).c_str()));
+        std::optional<ExecutionResult> err;
+        auto trackOpt = requireTrackId(args, err);
+        if (!trackOpt) return *err;
+        uint32_t trackId = *trackOpt;
 
         auto res = controller->computeLoudness(trackId);
         if (!res.success) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "TRACK_NOT_FOUND", res.errorMessage);
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, res.errorMessage);
         }
 
         return ExecutionResult::Success("ANALYSIS_LOUDNESS", {
@@ -154,12 +147,14 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
     }
 
     if (sub == "true-peak") {
-        std::string_view trackStr = args.getOption("--track", "0");
-        uint32_t trackId = static_cast<uint32_t>(std::atoi(std::string(trackStr).c_str()));
+        std::optional<ExecutionResult> err;
+        auto trackOpt = requireTrackId(args, err);
+        if (!trackOpt) return *err;
+        uint32_t trackId = *trackOpt;
 
         auto res = controller->computeTruePeak(trackId);
         if (!res.success) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "TRACK_NOT_FOUND", res.errorMessage);
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, res.errorMessage);
         }
 
         return ExecutionResult::Success("ANALYSIS_TRUE_PEAK", {
@@ -171,12 +166,18 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
     }
 
     if (sub == "phase-matrix") {
-        std::string_view tracksStr = args.getOption("--track", "1..4");
-        auto trackIds = parseTrackRange(tracksStr);
+        if (!args.hasFlag("--track") || args.getOption("--track").empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track argument for phase matrix.");
+        }
+        std::string_view tracksStr = args.getOption("--track");
+        auto trackIds = ParsedArgs::parseIntegerRange(tracksStr);
+        if (trackIds.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid track range format for --track.");
+        }
 
         auto res = controller->computePhaseMatrix(trackIds);
         if (!res.success) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "TRACK_NOT_FOUND", res.errorMessage);
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, res.errorMessage);
         }
 
         std::map<std::string, std::string> fields;
@@ -198,14 +199,22 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
     }
 
     if (sub == "phase-align") {
-        std::string_view trackAStr = args.getOption("--track", "1");
-        std::string_view trackBStr = args.getOption("--vs", "2");
-        uint32_t trackA = static_cast<uint32_t>(std::atoi(std::string(trackAStr).c_str()));
-        uint32_t trackB = static_cast<uint32_t>(std::atoi(std::string(trackBStr).c_str()));
+        std::string_view trackStr = args.getOption("--track");
+        std::string_view vsStr = args.getOption("--vs", args.getOption("--ref-track"));
+        if (trackStr.empty() || vsStr.empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --track or --vs/--ref-track target track argument.");
+        }
+        auto trackAOpt = ParsedArgs::parseUint32(trackStr);
+        auto trackBOpt = ParsedArgs::parseUint32(vsStr);
+        if (!trackAOpt.has_value() || !trackBOpt.has_value()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Invalid numeric format for --track or --vs/--ref-track.");
+        }
+        uint32_t trackA = *trackAOpt;
+        uint32_t trackB = *trackBOpt;
 
         auto res = controller->computePhaseAlign(trackA, trackB);
         if (!res.success) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "TRACK_NOT_FOUND", res.errorMessage);
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, res.errorMessage);
         }
 
         return ExecutionResult::Success("ANALYSIS_PHASE_ALIGN", {
@@ -219,20 +228,31 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
         });
     }
 
-    if (sub == "live") {
-        std::string_view trackStr = args.getOption("--track", "0");
-        std::string_view windowStr = args.getOption("--window-ms", "400");
-        uint32_t trackId = static_cast<uint32_t>(std::atoi(std::string(trackStr).c_str()));
-        uint32_t windowMs = static_cast<uint32_t>(std::atoi(std::string(windowStr).c_str()));
+    if (sub == "window") {
+        std::optional<ExecutionResult> err;
+        auto trackOpt = requireTrackId(args, err);
+        if (!trackOpt) return *err;
+        uint32_t trackId = *trackOpt;
 
-        auto res = controller->getLiveTelemetry(trackId, windowMs);
-        if (!res.success) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "TRACK_NOT_FOUND", res.errorMessage);
+        if (!args.hasFlag("--start") || args.getOption("--start").empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --start argument.");
+        }
+        if (!args.hasFlag("--dur") || args.getOption("--dur").empty()) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "Missing required --dur argument.");
         }
 
-        return ExecutionResult::Success("ANALYSIS_LIVE_STREAM", {
+        std::string startStr(args.getOption("--start"));
+        std::string durStr(args.getOption("--dur"));
+
+        auto res = controller->getWindowTelemetry(trackId, startStr, durStr);
+        if (!res.success) {
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, res.errorMessage);
+        }
+
+        return ExecutionResult::Success("ANALYSIS_WINDOW_STREAM", {
             {"TRACK_ID", std::to_string(trackId)},
-            {"WINDOW_DURATION_MS", std::to_string(windowMs)},
+            {"START_POS", res.startPos},
+            {"DUR_POS", res.durPos},
             {"MOMENTARY_LUFS", std::to_string(res.telemetry.momentaryLufs)},
             {"SHORT_TERM_LUFS", std::to_string(res.telemetry.shortTermLufs)},
             {"SAMPLE_PEAK_DBFS", std::to_string(res.telemetry.peakDbfs)},
@@ -248,12 +268,14 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
     }
 
     if (sub == "stereo-width") {
-        std::string_view trackStr = args.getOption("--track", "0");
-        uint32_t trackId = static_cast<uint32_t>(std::atoi(std::string(trackStr).c_str()));
+        std::optional<ExecutionResult> err;
+        auto trackOpt = requireTrackId(args, err);
+        if (!trackOpt) return *err;
+        uint32_t trackId = *trackOpt;
 
         auto res = controller->computeStereoWidth(trackId);
         if (!res.success) {
-            return ExecutionResult::Error(ErrorCode::ENTITY_NOT_FOUND, "TRACK_NOT_FOUND", res.errorMessage);
+            return ExecutionResult::Error(ErrorCode::INVALID_ARGS, res.errorMessage);
         }
 
         return ExecutionResult::Success("ANALYSIS_STEREO_WIDTH", {
@@ -261,12 +283,12 @@ ExecutionResult AnalysisHandler::handleCommand(const ParsedArgs& args, bridge::I
             {"MID_RMS_DBFS", std::to_string(res.midRmsDbfs)},
             {"SIDE_RMS_DBFS", std::to_string(res.sideRmsDbfs)},
             {"MS_RATIO_DB", std::to_string(res.msRatioDb)},
-            {"STEREO_WIDTH_PCT", std::to_string(res.stereoWidthPct) + "%"},
+            {"STEREO_WIDTH_PCT", std::to_string(res.stereoWidthPct)},
             {"MONO_FOLD_LOSS_DB", std::to_string(res.monoFoldLossDb)}
         });
     }
 
-    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "INVALID_ARGS", "Unknown analyze subcommand.");
+    return ExecutionResult::Error(ErrorCode::INVALID_ARGS, "UNKNOWN_SUBCOMMAND", "Unknown analysis subcommand: " + std::string(sub));
 }
 
 } // namespace agentic

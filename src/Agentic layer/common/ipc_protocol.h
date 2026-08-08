@@ -30,6 +30,20 @@ enum class OutputFormat {
     PRETTY  // Indented human-readable format
 };
 
+inline std::string errorCodeToSymbol(int code) {
+    switch (code) {
+        case ErrorCode::OK: return "OK";
+        case ErrorCode::INVALID_ARGS: return "INVALID_ARGS";
+        case ErrorCode::DAW_NOT_RUNNING: return "DAW_NOT_RUNNING";
+        case ErrorCode::ENTITY_NOT_FOUND: return "ENTITY_NOT_FOUND";
+        case ErrorCode::ENGINE_PLAYING_LOCKED: return "ENGINE_PLAYING_LOCKED";
+        case ErrorCode::RESOURCE_BUSY_USER_TOUCH: return "RESOURCE_BUSY";
+        case ErrorCode::PLUGIN_FAULT: return "PLUGIN_FAULT";
+        case ErrorCode::ASSET_I_O_ERROR: return "ASSET_I_O_ERROR";
+        default: return "ERROR";
+    }
+}
+
 // Execution Result Container
 struct ExecutionResult {
     int code{ErrorCode::OK};
@@ -50,6 +64,10 @@ struct ExecutionResult {
     static ExecutionResult MultiSuccess(std::string symbol,
                                         std::vector<std::map<std::string, std::string>> rows) {
         return ExecutionResult{ErrorCode::OK, std::move(symbol), "", {}, std::move(rows)};
+    }
+
+    static ExecutionResult Error(int code, std::string message) {
+        return ExecutionResult{code, errorCodeToSymbol(code), std::move(message), {}, {}};
     }
 
     static ExecutionResult Error(int code, std::string symbol, std::string message) {

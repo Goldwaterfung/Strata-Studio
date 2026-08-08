@@ -67,6 +67,8 @@ class IWorkspaceController;
 class IMidiEditorController;
 class IArrangementManagerController;
 class IRenderController;
+class IAnalysisController;
+class AnalysisController;
 class TrackController;
 class ArrangementController;
 class AutomationController;
@@ -136,6 +138,7 @@ public:
     bridge::IMidiEditorController* getMidiEditorController() const;
     bridge::IArrangementManagerController* getArrangementManagerController() const;
     bridge::IRenderController* getRenderController() const;
+    bridge::IAnalysisController* getAnalysisController() const;
     bridge::IWaveformCacheProvider* getWaveformCacheProvider() const { return waveformCacheProvider_.get(); }
     bridge::IPatternDataProvider* getPatternDataProvider() const { return patternDataProvider_.get(); }
     bridge::IHardwareSettingsFacade* getHardwareSettingsFacade() const { return hardwareSettingsFacade_.get(); }
@@ -246,6 +249,7 @@ private:
     std::unique_ptr<MediaManagement::IExportService> exportService_;
     std::unique_ptr<bridge::ArrangementManagerController> arrangementManagerController_;
     std::unique_ptr<bridge::RenderController> renderController_;
+    std::unique_ptr<bridge::AnalysisController> analysisController_;
 
     // Master bus DSP node
     NodeID masterChannelStripNode_;
