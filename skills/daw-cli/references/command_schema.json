@@ -382,21 +382,21 @@
             "--track": { "type": "integer", "required": true, "description": "Primary track ID" },
             "--vs": { "type": "integer", "required": true, "description": "Comparison target track ID" }
           },
-          "successSymbol": "MASKING_ANALYSIS_COMPLETED"
+          "successSymbol": "ANALYSIS_MASKING"
         },
         "resonance": {
           "description": "Detects harsh narrow-Q spectral resonances and Q-factors using moving median filtering.",
           "options": {
             "--track": { "type": "integer", "required": true, "description": "Track ID" }
           },
-          "successSymbol": "RESONANCE_ANALYSIS_COMPLETED"
+          "successSymbol": "ANALYSIS_RESONANCE"
         },
         "phase-matrix": {
           "description": "Computes N x N pairwise Pearson phase correlation matrix across tracks.",
           "options": {
             "--track": { "type": "string", "required": true, "description": "Track range or list (e.g. 1..4, 1,2,3)" }
           },
-          "successSymbol": "PHASE_MATRIX_COMPLETED"
+          "successSymbol": "ANALYSIS_PHASE_MATRIX"
         },
         "phase-align": {
           "description": "Calculates cross-correlation lag and recommends sample-accurate alignment offsets.",
@@ -404,43 +404,44 @@
             "--track": { "type": "integer", "required": true, "description": "Primary reference track ID" },
             "--vs": { "type": "integer", "required": true, "description": "Target track ID to align" }
           },
-          "successSymbol": "PHASE_ALIGN_COMPLETED"
+          "successSymbol": "ANALYSIS_PHASE_ALIGN"
         },
-        "live": {
-          "description": "Queries real-time zero-allocation telemetry snapshot.",
+        "window": {
+          "description": "Performs offline telemetry analysis over a specified timeline range.",
           "options": {
             "--track": { "type": "integer", "required": true, "description": "Track ID" },
-            "--window-ms": { "type": "integer", "default": 400, "description": "Sliding window duration in milliseconds" }
+            "--start": { "type": "string", "required": true, "description": "BBT start position" },
+            "--dur": { "type": "string", "required": true, "description": "BBT duration string" }
           },
-          "successSymbol": "LIVE_TELEMETRY_SNAPSHOT"
+          "successSymbol": "ANALYSIS_WINDOW_STREAM"
         },
         "spectrum": {
           "description": "Evaluates 7-band spectral energy balance, centroid, and spectral tilt.",
           "options": {
             "--track": { "type": "integer", "required": true, "description": "Track ID" }
           },
-          "successSymbol": "SPECTRUM_ANALYSIS_COMPLETED"
+          "successSymbol": "ANALYSIS_SPECTRUM"
         },
         "loudness": {
           "description": "Performs EBU R128 integrated loudness, momentary/short-term peak LUFS, and LRA audit.",
           "options": {
             "--track": { "type": "integer", "required": true, "description": "Track ID" }
           },
-          "successSymbol": "LOUDNESS_ANALYSIS_COMPLETED"
+          "successSymbol": "ANALYSIS_LOUDNESS"
         },
         "true-peak": {
           "description": "Audits 4x oversampled true-peak dBTP and inter-sample clipping events.",
           "options": {
             "--track": { "type": "integer", "required": true, "description": "Track ID" }
           },
-          "successSymbol": "TRUE_PEAK_ANALYSIS_COMPLETED"
+          "successSymbol": "ANALYSIS_TRUE_PEAK"
         },
         "stereo-width": {
           "description": "Evaluates Mid/Side RMS balance, stereo width percentage, and mono-fold loss.",
           "options": {
             "--track": { "type": "integer", "required": true, "description": "Track ID" }
           },
-          "successSymbol": "STEREO_WIDTH_ANALYSIS_COMPLETED"
+          "successSymbol": "ANALYSIS_STEREO_WIDTH"
         }
       }
     }

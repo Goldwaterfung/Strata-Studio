@@ -412,84 +412,86 @@ daw-cli route list [--format tsv|kv|json|pretty]
 
 ### 7. Non-Visual DSP Analysis & Audio Intelligence (analyze)
 
+Domain 6 provides a non-visual DSP analysis and audio intelligence suite across 9 specialized subcommands, supporting both **Short Frame** (real-time telemetry) and **Full Track** (offline decoded asset) processing.
+
 #### Frequency Masking & Collision Detection
-Calculates psychoacoustic masking overlap and energy density collisions across 24 critical Bark bands between two tracks.
+Calculates psychoacoustic masking overlap and energy density collisions across 24 critical Bark bands between two tracks using Schroeder spreading functions.
 ```bash
-daw-cli analyze masking --track 1 --vs 2
+daw-cli analyze masking --track 1 --vs 2 [--format json|tsv|kv|pretty]
 ```
-- **Success Symbol**: `MASKING_ANALYSIS_COMPLETED`
+- **Success Symbol**: `ANALYSIS_MASKING`
 - **Options**: `--track <uint32>`, `--vs <uint32>`
-- **Output Fields**: `PRIMARY_TRACK`, `VS_TRACK`, `OVERALL_MASKING_INDEX`, `COLLISION_RISK`, `MASKED_BAND_COUNT`, `BAND_1_RANGE_HZ`, `BAND_1_MASK_AMOUNT_DB`, `BAND_1_ACTION`, ...
+- **Output Fields**: `PRIMARY_TRACK`, `VS_TRACK`, `OVERALL_MASKING_INDEX` ($C_{A,B} \in [0.0, 1.0]$), `COLLISION_RISK` (`LOW_MASKING`, `MODERATE_MASKING`, `HIGH_MASKING`), `MASKED_BAND_COUNT`, `BAND_1_RANGE_HZ`, `BAND_1_MASK_AMOUNT_DB`, `BAND_1_RECOMMENDED_ACTION` (`SIDECHAIN_DUCK_PRIMARY_LOWS`, `CUT_VS_TRACK_EQ_<freq>HZ`), ...
 
 #### Narrow-Q Resonance Peak Detection
-Scans track audio spectrum with a moving median filter to locate harsh narrow-Q resonances, pitch note mappings, and Q-factor sharpness.
+Scans track audio spectrum with a 31-bin moving median spectral envelope filter to isolate harsh narrow-Q resonances, pitch note names, and Q-factor sharpness ($Q \ge 8.0$).
 ```bash
-daw-cli analyze resonance --track 1
+daw-cli analyze resonance --track 1 [--format json|tsv|kv|pretty]
 ```
-- **Success Symbol**: `RESONANCE_ANALYSIS_COMPLETED`
+- **Success Symbol**: `ANALYSIS_RESONANCE`
 - **Options**: `--track <uint32>`
-- **Output Fields**: `TRACK_ID`, `TOTAL_RESONANCES_FOUND`, `RESONANCE_1_FREQ_HZ`, `RESONANCE_1_NOTE`, `RESONANCE_1_PROMINENCE_DB`, `RESONANCE_1_Q_FACTOR`, `RESONANCE_1_SEVERITY`, `RESONANCE_1_REC_NOTCH_DB`
+- **Output Fields**: `TRACK_ID`, `TOTAL_RESONANCES_FOUND`, `RESONANCE_1_FREQ_HZ`, `RESONANCE_1_NOTE` (e.g. `E4`, `A5`), `RESONANCE_1_PROMINENCE_DB`, `RESONANCE_1_Q_FACTOR`, `RESONANCE_1_SEVERITY` (`HIGH_SEVERITY_SURGICAL_CUT`, `MODERATE`), `RESONANCE_1_REC_NOTCH_DB`
 
 #### Multi-Track Pearson Phase Correlation Matrix
-Computes N x N pairwise Pearson correlation coefficients across a list or range of tracks to flag phase cancellation risks.
+Computes an $N \times N$ pairwise Pearson correlation matrix ($r_{i,j}$) across a list or range of tracks to flag phase cancellation risks and identify destructive anti-phase pairs.
 ```bash
-daw-cli analyze phase-matrix --track 1..4
+daw-cli analyze phase-matrix --track 1..4 [--format json|tsv|kv|pretty]
 ```
-- **Success Symbol**: `PHASE_MATRIX_COMPLETED`
-- **Options**: `--track <range>`
-- **Output Fields**: `TRACKS_ANALYZED`, `GLOBAL_GROUP_HEALTH`, `WORST_PAIR_1`, `WORST_CORRELATION_1`, `REC_ACTION_1`, `CORRELATION_MATRIX_FLAT`
+- **Success Symbol**: `ANALYSIS_PHASE_MATRIX`
+- **Options**: `--track <range|list>` (e.g. `1..4`, `1,2,3,4`)
+- **Output Fields**: `TRACKS_ANALYZED`, `GLOBAL_GROUP_HEALTH` (`HEALTHY_MONO_COMPATIBLE`, `WARNING_SEVERE_CANCELLATION`), `WORST_PAIR_1`, `WORST_CORRELATION_1`, `REC_ACTION_1` (`FLIP_POLARITY_TRACK_<id>`, `NUDGE_DELAY_TRACK_<id>`), `CORRELATION_MATRIX_FLAT`
 
 #### Cross-Correlation Phase Alignment
-Calculates cross-correlation lag between two signals to recommend sample-accurate and millisecond time offsets.
+Calculates cross-correlation lag across $[-128, +128]$ sample offsets to recommend sample-accurate and millisecond time shifts ($\Delta t_{\text{ms}} = \frac{\text{offset}}{f_s} \times 1000$).
 ```bash
-daw-cli analyze phase-align --track 1 --vs 2
+daw-cli analyze phase-align --track 1 --vs 2 [--format json|tsv|kv|pretty]
 ```
-- **Success Symbol**: `PHASE_ALIGN_COMPLETED`
+- **Success Symbol**: `ANALYSIS_PHASE_ALIGN`
 - **Options**: `--track <uint32>`, `--vs <uint32>`
-- **Output Fields**: `PRIMARY_TRACK`, `VS_TRACK`, `RECOMMENDED_SAMPLE_OFFSET`, `RECOMMENDED_TIME_OFFSET_MS`, `CURRENT_CORRELATION`, `IMPROVED_CORRELATION`, `RECOMMENDED_ACTION`
+- **Output Fields**: `PRIMARY_TRACK`, `VS_TRACK`, `RECOMMENDED_SAMPLE_OFFSET`, `RECOMMENDED_TIME_OFFSET_MS`, `CURRENT_CORRELATION`, `IMPROVED_CORRELATION`, `RECOMMENDED_ACTION` (e.g. `NUDGE_REGION_TRACK_2_BY_-48_SAMPLES`)
 
-#### Live Real-Time Telemetry Stream Snapshot
-Queries zero-allocation real-time telemetry array for live momentary/short-term LUFS, true-peak dBTP, crest factor, and safety status.
+#### Window Offline Telemetry
+Performs offline telemetry analysis over a specified timeline range for momentary/short-term EBU R128 BS.1770 LUFS, true-peak dBTP, crest factor, and safety gain trim.
 ```bash
-daw-cli analyze live --track 1 [--window-ms 400]
+daw-cli analyze window --track 1 --start 1.1.0 --dur 4.0.0 [--format json|tsv|kv|pretty]
 ```
-- **Success Symbol**: `LIVE_TELEMETRY_SNAPSHOT`
-- **Options**: `--track <uint32>`, `--window-ms <uint32>` (Default: `400`)
-- **Output Fields**: `TRACK_ID`, `WINDOW_DURATION_MS`, `MOMENTARY_LUFS`, `SHORT_TERM_LUFS`, `SAMPLE_PEAK_DBFS`, `TRUE_PEAK_DBTP`, `IS_CLIPPING`, `CLIPPING_EVENTS_COUNT`, `CREST_FACTOR_DB`, `SPECTRAL_CENTROID_HZ`, `STEREO_CORRELATION`, `SAFETY_STATUS`, `REC_GAIN_TRIM_DB`
+- **Success Symbol**: `ANALYSIS_WINDOW_STREAM`
+- **Options**: `--track <uint32>`, `--start <BBT>`, `--dur <BBT>`
+- **Output Fields**: `TRACK_ID`, `START_POS`, `DUR_POS`, `MOMENTARY_LUFS`, `SHORT_TERM_LUFS`, `SAMPLE_PEAK_DBFS`, `TRUE_PEAK_DBTP`, `IS_CLIPPING`, `CLIPPING_EVENTS_COUNT`, `CREST_FACTOR_DB`, `SPECTRAL_CENTROID_HZ`, `STEREO_CORRELATION`, `SAFETY_STATUS` (`SAFE_NORMAL`, `VIOLATION_DANGER_REDUCE_GAIN`), `REC_GAIN_TRIM_DB`
 
 #### 7-Band Spectral Energy Balance
-Evaluates spectral distribution across Sub, Bass, Low-Mid, Mid, High-Mid, Highs, and Air bands alongside spectral centroid and tilt.
+Evaluates acoustic energy distribution across 7 standardized bands (Sub: 20-60Hz, Bass: 60-250Hz, Low-Mid: 250-500Hz, Mid: 500-2kHz, High-Mid: 2-4kHz, Highs: 4-8kHz, Air: 8-20kHz) alongside spectral centroid, 85% energy rolloff frequency, and spectral tilt (dB/octave).
 ```bash
-daw-cli analyze spectrum --track 1
+daw-cli analyze spectrum --track 1 [--format json|tsv|kv|pretty]
 ```
-- **Success Symbol**: `SPECTRUM_ANALYSIS_COMPLETED`
+- **Success Symbol**: `ANALYSIS_SPECTRUM`
 - **Options**: `--track <uint32>`
 - **Output Fields**: `TRACK_ID`, `SPECTRAL_CENTROID_HZ`, `SPECTRAL_TILT_DB_OCT`, `SPECTRAL_ROLLOFF_HZ`, `SUB_BAND_DBFS`, `BASS_BAND_DBFS`, `LOW_MID_BAND_DBFS`, `MID_BAND_DBFS`, `HIGH_MID_BAND_DBFS`, `HIGHS_BAND_DBFS`, `AIR_BAND_DBFS`
 
-#### EBU R128 Loudness Audit
-Measures integrated LUFS, loudness range (LRA), short-term/momentary peak LUFS, and crest factor.
+#### EBU R128 Loudness Audit (Full Track / Real-Time)
+Performs ITU-R BS.1770-4 / EBU R128 integrated loudness, loudness range (LRA), short-term/momentary peak LUFS, sample peak, and crest factor.
 ```bash
-daw-cli analyze loudness --track 1
+daw-cli analyze loudness --track 1 [--format json|tsv|kv|pretty]
 ```
-- **Success Symbol**: `LOUDNESS_ANALYSIS_COMPLETED`
+- **Success Symbol**: `ANALYSIS_LOUDNESS`
 - **Options**: `--track <uint32>`
 - **Output Fields**: `TRACK_ID`, `INTEGRATED_LUFS`, `SHORT_TERM_MAX_LUFS`, `MOMENTARY_MAX_LUFS`, `LRA_LU`, `CREST_FACTOR_DB`, `SAMPLE_PEAK_DBFS`, `TRUE_PEAK_DBTP`
 
 #### True-Peak Inter-Sample Clipping Audit
-Performs 4x oversampled true-peak analysis to detect inter-sample clipping events and safety margin status.
+Performs 4x oversampled true-peak analysis to detect inter-sample clipping events and safety margin status ($0.0\text{ dBTP}$ threshold).
 ```bash
-daw-cli analyze true-peak --track 1
+daw-cli analyze true-peak --track 1 [--format json|tsv|kv|pretty]
 ```
-- **Success Symbol**: `TRUE_PEAK_ANALYSIS_COMPLETED`
+- **Success Symbol**: `ANALYSIS_TRUE_PEAK`
 - **Options**: `--track <uint32>`
-- **Output Fields**: `TRACK_ID`, `MAX_TRUE_PEAK_DBTP`, `TOTAL_CLIPPING_EVENTS`, `SAFETY_STATUS`
+- **Output Fields**: `TRACK_ID`, `MAX_TRUE_PEAK_DBTP`, `TOTAL_CLIPPING_EVENTS`, `SAFETY_STATUS` (`SAFE_NORMAL`, `VIOLATION_DANGER`)
 
 #### Mid/Side Stereo Width Audit
-Measures Mid RMS, Side RMS, Mid-to-Side ratio in dB, stereo width percentage, and estimated mono fold-down signal loss.
+Measures Mid RMS ($0.5(L+R)$), Side RMS ($0.5(L-R)$), Mid-to-Side ratio in dB, stereo width percentage, and mono fold-down cancellation loss in dB.
 ```bash
-daw-cli analyze stereo-width --track 1
+daw-cli analyze stereo-width --track 1 [--format json|tsv|kv|pretty]
 ```
-- **Success Symbol**: `STEREO_WIDTH_ANALYSIS_COMPLETED`
+- **Success Symbol**: `ANALYSIS_STEREO_WIDTH`
 - **Options**: `--track <uint32>`
 - **Output Fields**: `TRACK_ID`, `MID_RMS_DBFS`, `SIDE_RMS_DBFS`, `MS_RATIO_DB`, `STEREO_WIDTH_PCT`, `MONO_FOLD_LOSS_DB`
 
@@ -551,8 +553,8 @@ daw-cli analyze resonance --track 2
 # 3. Evaluate multi-mic phase alignment between Top Snare (Track 3) and Bottom Snare (Track 4)
 daw-cli analyze phase-align --track 3 --vs 4
 
-# 4. Snapshot real-time LUFS & True-Peak telemetry on Master Output (Track 10)
-daw-cli analyze live --track 10 --window-ms 400
+# 4. Perform offline windowed LUFS & True-Peak telemetry on Master Output (Track 10)
+daw-cli analyze window --track 10 --start 1.1.0 --dur 4.0.0
 ```
 
 ---
